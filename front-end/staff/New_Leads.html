@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leads</title>
+    <style>
+ /* Basic reset */
+ * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Header Section */
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        header nav ul {
+            list-style: none;
+        }
+
+        header nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+
+        header nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Main Section */
+        main {
+            display: flex;
+            height: calc(100vh - 160px); /* Subtracting header and footer height */
+        }
+
+        /* Main Container (for the 20% and 80% layout) */
+        .main-container {
+            display: flex;
+            width: 100%;
+        }
+        
+        h2{
+            text-align: center;
+            margin-bottom: 20px;
+            color: #000000; 
+        }
+        /* Footer Section */
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            position: absolute;
+            width: 100%;
+            bottom: 0;
+        }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f0f0f0; }
+    </style>
+</head>
+<body>
+        <!-- Header Section -->
+        <header>
+            <h1>Money Krishna Education</h1><br><br>
+            <nav>
+                <!-- Navigation links or logo can go here -->
+                <ul>
+                    <li><a href="staff_dashboard.html">Home</a></li>
+                    <li><a href="New_Leads.html">Leads</a></li>
+                    <li><a href="followup.html">Followup</a></li>
+                    <li><a href="account_open.html">Account Open</a></li>
+                    <li><a href="sale.html">Sale</a></li>
+                    <li><a href="#" onclick="logout()">Logout</a></li>
+                </ul>
+            </nav>
+        </header>
+        </header><br>
+    <h2>Leads</h2><br>
+    <table id="leadsTable">
+        <thead>
+            <tr>
+                <th>Lead ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>City</th>
+                <th>Assigned Staff</th>
+            </tr>
+        </thead>
+        <tbody id="leadsTableBody">
+            <!-- Data will be inserted here -->
+        </tbody>
+    </table>
+        <script>
+            const urlParams = new URLSearchParams(window.location.search);
+            const signedInStaffEmail = urlParams.get('staffEmail');
+            let currentStaffEmailForLeads = signedInStaffEmail; 
+        
+            if (signedInStaffEmail) {
+                document.querySelector('h1').textContent = `Assigned_Leads to: ${signedInStaffEmail}`;
+            } else {
+                currentStaffEmailForLeads = null; 
+                document.querySelector('h1').textContent = `Money Krishna Education`; 
+            }
+        
+        
+            fetchLeadsButton.addEventListener('click', () => {
+               
+                simulateFetchNewLeads();
+            });
+        
+            function simulateFetchNewLeads() { 
+                // Load existing leads from localStorage
+                let existingLeads = JSON.parse(localStorage.getItem('leadsData') || '[]');
+                const existingLeadIds = existingLeads.map(lead => lead.lead_id); 
+        
+                let newLeadsToAdd = []; 
+                let duplicateCount = 0;
+        
+                potentialNewLeads.forEach(potentialLead => {
+                    if (!existingLeadIds.includes(potentialLead.lead_id)) {
+                        newLeadsToAdd.push(potentialLead);
+                    } else {
+                        duplicateCount++;
+                    }
+                });
+        
+                
+                const updatedLeads = existingLeads.concat(newLeadsToAdd);
+        
+                
+                localStorage.setItem('leadsData', JSON.stringify(updatedLeads));
+        
+                let message = `${newLeadsToAdd.length} new leads simulated and added.`;
+                if (duplicateCount > 0) {
+                    message += ` ${duplicateCount} duplicate leads were ignored.`;
+                }
+                alert(message);
+                loadLeadsTable(); 
+            }
+        
+        
+            async function loadLeadsTable() {
+                try {
+                    const token = localStorage.getItem('jwt_token');
+                    if (!token) {
+                        console.error('No token found');
+                        window.location.href = '../index.html';
+                        return;
+                    }
+
+                    console.log('Making request with token:', token);
+                    const response = await fetch('http://127.0.0.1:5000/leads', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'include',
+                        mode: 'cors'
+                    });
+
+                    console.log('Response status:', response.status);
+                    if (response.status === 401 || response.status === 422) {
+                        const errorText = await response.text();
+                        console.error('Authentication error:', errorText);
+                        localStorage.clear();
+                        window.location.href = '../index.html';
+                        return;
+                    }
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('API error:', response.status, errorText);
+                        return;
+                    }
+
+                    const leadsData = await response.json();
+                    console.log('Received data:', leadsData);
+                    
+                    // Filter leads for current staff if needed
+                    let filteredLeads = leadsData;
+                    if (currentStaffEmailForLeads) {
+                        filteredLeads = leadsData.filter(lead => lead.assigned_staff === currentStaffEmailForLeads);
+                    }
+
+                    leadsTableBody.innerHTML = ''; 
+                    filteredLeads.forEach(lead => {
+                        const row = leadsTableBody.insertRow();
+                        row.insertCell().textContent = lead.lead_id;
+                        row.insertCell().textContent = lead.full_name || lead.name || 'N/A'; 
+                        row.insertCell().textContent = lead.email || 'N/A';
+                        row.insertCell().textContent = lead.phone_number || lead.phone || 'N/A';
+                        row.insertCell().textContent = lead.city || 'N/A';
+                        row.insertCell().textContent = lead.assigned_staff || 'Unassigned';
+                    });
+                } catch (error) {
+                    console.error('Error loading leads:', error);
+                }
+            }
+            function logout() {
+                localStorage.removeItem('userToken');
+                localStorage.removeItem('userData');
+                window.location.href = '/signin_signup.html'; // Redirect to login page
+            }
+          
+            loadLeadsTable();
+        
+        </script>
+        <!-- Footer Section -->
+        <footer>
+            <p>&copy; 2025 Money Krishna Education. All rights reserved.</p>
+        </footer>
+</body>
+</html>
+

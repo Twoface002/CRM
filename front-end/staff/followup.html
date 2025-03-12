@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Followup</title>
+    <style>
+        /* Basic reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Header Section */
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        header nav ul {
+            list-style: none;
+        }
+
+        header nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+
+        header nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Main Section */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        /* Profile Section */
+        .profile {
+            position: relative;
+            display: inline-block;
+            float: right;
+            margin-right: 20px;
+        }
+
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            z-index: 1;
+        }
+
+        .profile-dropdown a {
+            color: black;
+            padding: 10px 20px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .profile-dropdown a:hover {
+            background-color: #f0f0f0;
+        }
+
+        .profile:hover .profile-dropdown {
+            display: block;
+        }
+
+        /* Footer Section */
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <h1>Money Krishna Education</h1>
+        <nav>
+            <ul>
+                <li><a href="staff_dashboard.html">Home</a></li>
+                <li><a href="New_Leads.html">Leads</a></li>
+                <li><a href="followup.html">Followup</a></li>
+                <li><a href="account_open.html">Account Open</a></li>
+                <li><a href="sale.html">Sale</a></li>
+            </ul>
+        </nav>
+        <div class="profile">
+            <span id="profileName">Loading...</span>
+            <div class="profile-dropdown">
+                <a href="../profile.html">Profile</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2>Followup List</h2>
+        <table id="followupTable">
+            <thead>
+                <tr>
+                    <th>Lead ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Next Followup Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="followupTableBody">
+                <!-- Data will be inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Money Krishna Education. All rights reserved.</p>
+    </footer>
+
+    <script>
+        async function fetchWithAuth(url) {
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                window.location.href = '../index.html';
+                return null;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include',
+                    mode: 'cors'
+                });
+
+                if (response.status === 401 || response.status === 422) {
+                    console.error('Authentication error:', await response.text());
+                    localStorage.clear();
+                    window.location.href = '../index.html';
+                    return null;
+                }
+
+                return response;
+            } catch (error) {
+                console.error('API request failed:', error);
+                return null;
+            }
+        }
+
+        async function fetchProfileName() {
+            try {
+                const response = await fetchWithAuth('http://127.0.0.1:5000/profile');
+                if (response && response.ok) {
+                    const data = await response.json();
+                    document.getElementById('profileName').textContent = data.name || data.email;
+                }
+            } catch (error) {
+                console.error('Error fetching profile:', error);
+                document.getElementById('profileName').textContent = 'Error loading profile';
+            }
+        }
+
+        async function loadFollowupData() {
+            try {
+                const response = await fetchWithAuth('http://127.0.0.1:5000/followup');
+                if (response && response.ok) {
+                    const data = await response.json();
+                    const tableBody = document.getElementById('followupTableBody');
+                    tableBody.innerHTML = '';
+
+                    data.forEach(followup => {
+                        const row = tableBody.insertRow();
+                        row.insertCell().textContent = followup.lead_id;
+                        row.insertCell().textContent = followup.name || 'N/A';
+                        row.insertCell().textContent = followup.email || 'N/A';
+                        row.insertCell().textContent = followup.phone || 'N/A';
+                        row.insertCell().textContent = followup.status || 'Pending';
+                        row.insertCell().textContent = followup.next_followup_date || 'Not scheduled';
+                        
+                        const actionsCell = row.insertCell();
+                        const updateButton = document.createElement('button');
+                        updateButton.textContent = 'Update';
+                        updateButton.onclick = () => updateFollowup(followup.id);
+                        actionsCell.appendChild(updateButton);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading followup data:', error);
+            }
+        }
+
+        function updateFollowup(id) {
+            // Implement followup update functionality
+            console.log('Update followup:', id);
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '../index.html';
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchProfileName();
+            loadFollowupData();
+        });
+    </script>
+</body>
+</html>

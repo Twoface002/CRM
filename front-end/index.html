@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Krishna Education</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #e0f7fa;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="password"],
+        .form-group input[type="date"],
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+        }
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .toggle-link {
+            margin-top: 20px;
+            font-size: 0.9em;
+            text-align: center;
+        }
+        .toggle-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .toggle-link a:hover {
+            text-decoration: underline;
+        }
+        .forgot-password-link {
+            margin-top: 10px;
+            font-size: 0.9em;
+            text-align: center;
+        }
+        .forgot-password-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .forgot-password-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 id="formTitle">Sign In</h2>
+
+        <!-- Signin Form -->
+        <form id="signinForm">
+            <div class="form-group">
+                <label for="signinEmail">Email Address:</label>
+                <input type="email" id="signinEmail" name="signinEmail" required placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+                <label for="signinPassword">Password:</label>
+                <input type="password" id="signinPassword" name="signinPassword" required placeholder="Enter your password">
+                <input type="checkbox" id="showPassword"> Show Password
+            </div>
+            <button type="submit">Sign In</button>
+            <div class="forgot-password-link">
+                <a href="#" id="forgotPasswordLink">Forgot your password?</a>
+            </div>
+            <div id="formMessage" class="message"></div>
+        </form>
+
+        <!-- Signup Form -->
+        <form id="signupForm" style="display: none;">
+            <div class="form-group">
+                <label for="signupName">Full Name:</label>
+                <input type="text" id="signupName" name="signupName" required placeholder="Enter your full name">
+            </div>
+            <div class="form-group">
+                <label for="signupPhone">Phone Number:</label>
+                <input type="text" id="signupPhone" name="signupPhone" required placeholder="Enter your phone number">
+            </div>
+            <div class="form-group">
+                <label for="signupDob">Date of Birth:</label>
+                <input type="date" id="signupDob" name="signupDob" required>
+            </div>
+            <div class="form-group">
+                <label for="signupEmail">Email Address:</label>
+                <input type="email" id="signupEmail" name="signupEmail" required placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+                <label for="signupPassword">Password:</label>
+                <input type="password" id="signupPassword" name="signupPassword" required placeholder="Enter your password">
+            </div>
+            <div class="form-group">
+                <label for="signupRole">Role:</label>
+                <select id="signupRole" name="signupRole" required>
+                    <option value="admin">Admin</option>
+                    <option value="staff">Staff</option>
+                </select>
+            </div>
+            <button type="submit">Sign Up</button>
+            <div id="formMessageSignup" class="message"></div>
+        </form>
+
+        <!-- Toggle Link -->
+        <div class="toggle-link">
+            <a href="#" id="toggleLink">Don't have an account? Sign up here</a>
+        </div>
+    </div>
+
+    <script>
+        const signinForm = document.getElementById('signinForm');
+        const signupForm = document.getElementById('signupForm');
+        const formTitle = document.getElementById('formTitle');
+        const toggleLink = document.getElementById('toggleLink');
+        const formMessage = document.getElementById('formMessage');
+        const formMessageSignup = document.getElementById('formMessageSignup');
+        const showPasswordCheckbox = document.getElementById('showPassword');
+        const signinPassword = document.getElementById('signinPassword');
+
+        // Toggle between Signin and Signup forms
+        toggleLink.addEventListener('click', function(event) {
+            event.preventDefault();
+            if (signinForm.style.display === 'none') {
+                signinForm.style.display = 'block';
+                signupForm.style.display = 'none';
+                formTitle.textContent = 'Sign In';
+                toggleLink.textContent = "Don't have an account? Sign up here";
+            } else {
+                signinForm.style.display = 'none';
+                signupForm.style.display = 'block';
+                formTitle.textContent = 'Sign Up';
+                toggleLink.textContent = 'Already have an account? Sign in here';
+            }
+        });
+
+        // Show/hide password
+        showPasswordCheckbox.addEventListener('change', function() {
+            signinPassword.type = showPasswordCheckbox.checked ? 'text' : 'password';
+        });
+
+        // Signin Form Submission
+        signinForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const formMessage = document.getElementById('formMessage');
+
+            try {
+                const signinEmail = document.getElementById('signinEmail').value;
+                const signinPassword = document.getElementById('signinPassword').value;
+
+                console.log('Attempting login for:', signinEmail);
+                const response = await fetch('http://127.0.0.1:5000/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include',
+                    mode: 'cors',
+                    body: JSON.stringify({
+                        email: signinEmail,
+                        password: signinPassword,
+                    }),
+                });
+
+                console.log('Login response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    formMessage.textContent = errorData.message || 'Login failed';
+                    formMessage.className = 'message error-message';
+                    formMessage.style.display = 'block';
+                    console.error('Login failed:', errorData);
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('Login successful:', data);
+                
+                // Store auth data
+                localStorage.setItem('jwt_token', data.access_token);
+                localStorage.setItem('user_role', data.role);
+                localStorage.setItem('user_email', data.email);
+                
+                // Get the base URL
+                const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+                
+                if (data.role === 'admin') {
+                    console.log('Redirecting to admin dashboard...');
+                    window.location.href = baseUrl + 'admin/admin_dashboard.html';
+                } else if (data.role === 'staff') {
+                    console.log('Redirecting to staff dashboard...');
+                    window.location.href = baseUrl + `staff/staff_dashboard.html?staffEmail=${encodeURIComponent(data.email)}`;
+                } else {
+                    console.error('Unknown role:', data.role);
+                    formMessage.textContent = 'Invalid user role';
+                    formMessage.className = 'message error-message';
+                    formMessage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                formMessage.textContent = 'An error occurred during login. Please try again.';
+                formMessage.className = 'message error-message';
+                formMessage.style.display = 'block';
+            }
+        });
+
+        // Signup Form Submission
+        document.getElementById('signupForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const signupEmail = document.getElementById('signupEmail').value;
+    const signupPassword = document.getElementById('signupPassword').value;
+    const signupRole = document.getElementById('signupRole').value;
+    const signupName = document.getElementById('signupName').value;
+    const signupPhone = document.getElementById('signupPhone').value;
+    const signupDob = document.getElementById('signupDob').value;
+
+    const response = await fetch('http://127.0.0.1:5000/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            email: signupEmail,
+            password: signupPassword,
+            role: signupRole,
+            name: signupName,
+            phone: signupPhone,
+            dob: signupDob,
+        }),
+    });
+
+    if (response.ok) {
+        alert('Sign-up successful!');
+    } else {
+        const errorData = await response.json();
+        alert(`Sign-up failed: ${errorData.message}`);
+    }
+}); 
+        // Forgot Password
+        document.getElementById('forgotPasswordLink').addEventListener('click', function(event) {
+            event.preventDefault();
+            const email = prompt('Please enter your email address:');
+            if (email) {
+                fetch('http://127.0.0.1:5000/forgot-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email }),
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Password reset link has been sent to your email.');
+                    } else {
+                        alert('Email not found. Please check and try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+        });
+
+        // Show message
+        function showMessage(element, typeClass, text) {
+            element.textContent = text;
+            element.className = `message ${typeClass}`;
+            element.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

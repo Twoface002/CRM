@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Open</title>
+    <style>
+     /* Basic reset */
+     * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Header Section */
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        header nav ul {
+            list-style: none;
+        }
+
+        header nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+
+        header nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Main Section */
+        main {
+            display: flex;
+            height: calc(100vh - 160px); /* Subtracting header and footer height */
+        }
+
+        /* Main Container (for the 20% and 80% layout) */
+        .main-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+        /* Footer Section */
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            position: absolute;
+            width: 100%;
+            bottom: 0;
+        }
+        .leads-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .lead {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .lead:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+        <!-- Header Section -->
+        <header>
+            <h1>Money Krishna Education</h1><br><br>
+            <nav>
+                <!-- Navigation links or logo can go here -->
+                <ul>
+                    <li><a href="staff_dashboard.html">Home</a></li>
+                    <li><a href="New_Leads.html">Leads</a></li>
+                    <li><a href="followup.html">Followup</a></li>
+                    <li><a href="account_open.html">Account Open</a></li>
+                    <li><a href="sale.html">Sale</a></li>
+                    <li><a href="#" onclick="logout()">Logout</a></li>
+                </ul>
+            </nav>
+        </header>
+     
+<br><br><center>
+    <h2>Account Open Page</h2>
+    </center>
+    <div class="main-container">
+        <div class="leads-container" id="leadsContainer">
+            <p>Loading account open leads...</p>
+        </div>
+    </div>
+ <!-- Footer Section -->
+ <footer>
+    <p>&copy; 2025 Money Krishna Education. All rights reserved.</p>
+</footer>
+    <script>
+        function loadAccountOpenLeads() {
+            fetch('NewLeads.html')
+                .then(response => response.text())
+                .then(data => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(data, 'text/html');
+                    const leads = doc.querySelectorAll('.lead');
+                    const leadsContainer = document.getElementById('leadsContainer');
+                    leadsContainer.innerHTML = '';
+                    leads.forEach(lead => {
+                        leadsContainer.appendChild(lead.cloneNode(true));
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading account open leads:', error);
+                    document.getElementById('leadsContainer').textContent = 'Failed to load account open leads.';
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAccountOpenLeads);
+    </script>
+</body>
+</html>

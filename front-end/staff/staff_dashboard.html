@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff_Dashboard</title>
+    <style>
+
+     /* Basic reset */
+     * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Header Section */
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        header nav ul {
+            list-style: none;
+        }
+
+        header nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+
+        header nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Main Section */
+        main {
+            display: flex;
+            height: calc(100vh - 160px); /* Subtracting header and footer height */
+        }
+
+        /* Main Container (for the 20% and 80% layout) */
+        .main-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+        /* Footer Section */
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            position: absolute;
+            width: 100%;
+            bottom: 0;
+        }
+        .dashboard-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 0 auto; 
+            max-width: 1200px; 
+        }
+        .dashboard-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            width:250px; /* Changed width from 250px to 300px */
+            height: 250px; /* Added height */
+        }
+        .dashboard-card:hover {
+            transform: scale(1.05);
+        }
+
+        .card-title {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .card-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .profile {
+            position: relative;
+            display: inline-block;
+        }
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            z-index: 1;
+        }
+        .profile-dropdown a {
+            color: black;
+            padding: 10px 20px;
+            text-decoration: none;
+            display: block;
+        }
+        .profile-dropdown a:hover {
+            background-color: #f0f0f0;
+        }
+        .profile:hover .profile-dropdown {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <h1>Money Krishna Education</h1><br><br>
+        <nav>
+            <!-- Navigation links or logo can go here -->
+            <ul>
+                <li><a href="staff_dashboard.html">Home</a></li>
+                <li><a href="New_Leads.html">Leads</a></li>
+                <li><a href="followup.html">Followup</a></li>
+                <li><a href="account_open.html">Account Open</a></li>
+                <li><a href="sale.html">Sale</a></li>
+            </ul>
+        </nav>
+        <div class="profile" style="float: right; margin-right: 20px;">
+            <span id="profileName">Loading...</span>
+            <div class="profile-dropdown">
+                <a href="/CRM/front-end/profile.html">Profile</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </header>
+ 
+        <br><br><center>
+            <h2 class="main-h2">Dashboard</h2><br>
+        </center>
+        <div class="main-container">
+            <div class="dashboard-container">
+                <div class="dashboard-card">
+                    <h2 class="card-title">Followup</h2>
+                    <p class="card-value" id="followupCount">Loading...</p>
+                </div>  
+            <div class="dashboard-card">
+                <h2 class="card-title">Account Open</h2>
+                <p class="card-value" id="accountOpenCount">Loading...</p>
+            </div>
+            <div class="dashboard-card">
+                <h2 class="card-title">Sale</h2>
+                <p class="card-value" id="saleCount">Loading...</p>
+            </div>
+            <div class="dashboard-card">
+                <h2 class="card-title">New Leads</h2>
+                <p class="card-value" id="newLeadsCount">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchProfileName() {
+            try {
+                const token = localStorage.getItem('jwt_token');
+                if (!token) {
+                    window.location.href = '../index.html';
+                    return;
+                }
+
+                const response = await fetch('http://127.0.0.1:5000/profile', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include',
+                    mode: 'cors'
+                });
+
+                if (response.status === 401 || response.status === 422) {
+                    console.error('Authentication error:', await response.text());
+                    localStorage.clear();
+                    window.location.href = '../index.html';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('profileName').textContent = data.name || data.email;
+            } catch (error) {
+                console.error('Error fetching profile:', error);
+                document.getElementById('profileName').textContent = 'Error loading profile';
+            }
+        }
+
+        async function fetchWithAuth(url) {
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                window.location.href = '../index.html';
+                return null;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include',
+                    mode: 'cors'
+                });
+
+                if (response.status === 401 || response.status === 422) {
+                    console.error('Authentication error:', await response.text());
+                    localStorage.clear();
+                    window.location.href = '../index.html';
+                    return null;
+                }
+
+                return response;
+            } catch (error) {
+                console.error('API request failed:', error);
+                return null;
+            }
+        }
+
+        async function fetchFollowup() {
+            const response = await fetchWithAuth('http://127.0.0.1:5000/followup');
+            if (response && response.ok) {
+                const data = await response.json();
+                document.getElementById('followupCount').textContent = data.length;
+            } else {
+                document.getElementById('followupCount').textContent = 'Error';
+            }
+        }
+
+        async function fetchAccountOpen() {
+            const response = await fetchWithAuth('http://127.0.0.1:5000/account_open');
+            if (response && response.ok) {
+                const data = await response.json();
+                document.getElementById('accountOpenCount').textContent = data.length;
+            } else {
+                document.getElementById('accountOpenCount').textContent = 'Error';
+            }
+        }
+
+        async function fetchSale() {
+            const response = await fetchWithAuth('http://127.0.0.1:5000/sale');
+            if (response && response.ok) {
+                const data = await response.json();
+                document.getElementById('saleCount').textContent = data.length;
+            } else {
+                document.getElementById('saleCount').textContent = 'Error';
+            }
+        }
+
+        async function fetchNewLeads() {
+            const response = await fetchWithAuth('http://127.0.0.1:5000/new_leads');
+            if (response && response.ok) {
+                const data = await response.json();
+                document.getElementById('newLeadsCount').textContent = data.length;
+            } else {
+                document.getElementById('newLeadsCount').textContent = 'Error';
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '../index.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchProfileName();
+            fetchFollowup();
+            fetchAccountOpen();
+            fetchSale();
+            fetchNewLeads();
+        });
+    </script>
+             <!-- Footer Section -->
+        <footer>
+            <p>&copy; 2025 Money Krishna Education. All rights reserved.</p>
+        </footer>
+</body>
+</html>

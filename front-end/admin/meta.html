@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ads Manager</title>
+    <style>
+        /* Basic reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Header Section */
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        header nav ul {
+            list-style: none;
+        }
+
+        header nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+
+        header nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Main Section */
+        main {
+            display: flex;
+            height: calc(100vh - 160px); /* Subtracting header and footer height */
+        }
+
+        /* Main Container (for the 20% and 80% layout) */
+        .main-container {
+            display: flex;
+            width: 100%;
+        }
+        /* Footer Section */
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            position: absolute;
+            width: 100%;
+            bottom: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .link-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .link-card {
+            background-color: #f0f2f5; 
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .link-card:hover {
+            transform: scale(1.05);
+        }
+
+        .link-card a {
+            display: block;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            font-size: 16px;
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+            transition: background-color 0.2s ease;
+        }
+
+        .link-card a:hover {
+            background-color: #e0e0e0;
+        }
+
+        .link-description {
+            margin-top: 10px;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+        <!-- Header Section -->
+        <header>
+            <h1>Money Krishna Education</h1><br><br>
+            <nav>
+                <!-- Navigation links or logo can go here -->
+                <ul>
+                    <li><a href="admin_dashboard.html">Home</a></li>
+                    <li><a href="admin_staff_monitor.html">Staff</a></li>
+                    <li><a href="Leads.html">Leads</a></li>
+                    <li><a href="meta.html">Meta</a></li>
+                </ul>
+            </nav>
+        </header>
+        
+        
+    <div class="container"><br><br>
+        <center><h2>Ads Manager</h2></center><br><br>
+       
+        <div class="link-grid">
+            <div class="link-card">
+                <h2>Campaigns</h2>
+                <p class="link-description">View and manage all your advertising campaigns.</p>
+                <a href="https://www.facebook.com/adsmanager/campaigns">Go to Campaigns</a>
+            </div>
+
+            <div class="link-card">
+                <h2>Ad Sets</h2>
+                <p class="link-description">Manage your ad sets, targeting, budgets, and schedules.</p>
+                <a href="https://adsmanager.facebook.com/adsmanager/manage/adsets?act=456947616362055">Go to Ad Sets</a>
+            </div>
+
+            <div class="link-card">
+                <h2>Ads</h2>
+                <p class="link-description">Create and edit individual ads, including images, videos, and text.</p>
+                <a href="https://adsmanager.facebook.com/adsmanager/manage/ads?act=456947616362055&date=2025-02-20_2025-02-25&nav_source=fb4b">Go to Ads</a>
+            </div>
+
+
+            <div class="link-card">
+                <h2>Billing</h2>
+                <p class="link-description">Review and manage your advertising billing and payment methods.</p>
+                <a href="https://adsmanager.facebook.com/billing_hub/payment_activity/?placement=ads_manager&asset_id=456947616362055">Go to Billing</a>
+            </div>
+
+            <div class="link-card">
+                <h2>Audiences</h2>
+                <p class="link-description">Create and manage saved, custom, and lookalike audiences for targeting.</p>
+                <a href="https://adsmanager.facebook.com/adsmanager/?act=456947616362055&tool=AUDIENCES&nav_entry_point=ads_ecosystem_navigation_menu&nav_source=ads_manager">Go to Audiences</a>
+            </div>
+            <div class="link-card">
+                <h2>Account Settings</h2>
+                <p class="link-description">Adjust your Ads Manager account settings and permissions.</p>
+                <a href="https://adsmanager.facebook.com/adsmanager/manage/ad_account_settings/ad_account_setup?act=456947616362055&date=2025-02-20_2025-02-25&nav_source=fb4b">Go to Account Settings</a>
+            </div>
+        </div>
+    </div>
+        <!-- Footer Section -->
+        <footer>
+            <p>&copy; 2025 Money Krishna Education. All rights reserved.</p>
+        </footer>
+
+        <script>
+            function logout() {
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userData');
+    window.location.href = '/signin_signup.html'; // Redirect to login page
+}
+        </script>
+    
+</body>
+</html>

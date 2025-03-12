@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leads Management</title>
+    <style>
+        /* Basic reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        /* Header Section */
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        header nav ul {
+            list-style: none;
+        }
+
+        header nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+
+        header nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .upload-section, .meta-section {
+            margin-bottom: 30px;
+        }
+
+        .file-input-container {
+            margin-bottom: 20px;
+        }
+
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .button.secondary {
+            background-color: #6c757d;
+        }
+
+        .meta-connect-button {
+            background-color: #1877f2;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .status-new {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #dc3545;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .success-message {
+            color: #28a745;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #28a745;
+            border-radius: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Money Krishna Education</h1><br><br>
+        <nav>
+            <ul>
+                <li><a href="admin_dashboard.html">Home</a></li>
+                <li><a href="admin_staff_monitor.html">Staff</a></li>
+                <li><a href="Leads.html">Leads</a></li>
+                <li><a href="meta.html">Meta</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- CSV Upload Section -->
+        <div class="card upload-section">
+            <h2>Upload Leads</h2>
+            <div class="file-input-container">
+                <input type="file" id="csvFile" accept=".csv" />
+                <button class="button" onclick="uploadCSV()">Upload CSV</button>
+            </div>
+            <div id="uploadMessage" class="success-message"></div>
+            <div id="uploadError" class="error-message"></div>
+        </div>
+
+        <!-- Meta Ads Integration Section -->
+        <div class="card meta-section">
+            <h2>Meta Ads Leads</h2>
+            <button class="button meta-connect-button" onclick="connectMetaAds()">Connect Meta Ads</button>
+            <button class="button" onclick="fetchMetaLeads()">Fetch Latest Leads</button>
+            <div id="metaMessage" class="success-message"></div>
+            <div id="metaError" class="error-message"></div>
+        </div>
+
+        <!-- Leads Table -->
+        <div class="card">
+            <h2>Recent Leads</h2>
+            <table id="leadsTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>City</th>
+                        <th>Source</th>
+                        <th>Status</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="leadsTableBody">
+                    <!-- Leads will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function fetchWithAuth(url, method = 'GET', body = null) {
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                window.location.href = '../index.html';
+                return null;
+            }
+
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include',
+                    mode: 'cors'
+                };
+
+                if (body) {
+                    if (body instanceof FormData) {
+                        delete options.headers['Content-Type'];
+                        options.body = body;
+                    } else {
+                        options.body = JSON.stringify(body);
+                    }
+                }
+
+                const response = await fetch(url, options);
+
+                if (response.status === 401 || response.status === 422) {
+                    console.error('Authentication error:', await response.text());
+                    localStorage.clear();
+                    window.location.href = '../index.html';
+                    return null;
+                }
+
+                return response;
+            } catch (error) {
+                console.error('API request failed:', error);
+                return null;
+            }
+        }
+
+        async function uploadCSV() {
+            const fileInput = document.getElementById('csvFile');
+            const uploadMessage = document.getElementById('uploadMessage');
+            const uploadError = document.getElementById('uploadError');
+
+            if (!fileInput.files.length) {
+                uploadError.textContent = 'Please select a CSV file';
+                uploadError.style.display = 'block';
+                uploadMessage.style.display = 'none';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetchWithAuth('http://127.0.0.1:5000/upload_leads', 'POST', formData);
+                
+                if (!response || !response.ok) {
+                    throw new Error('Failed to upload CSV');
+                }
+
+                const result = await response.json();
+                uploadMessage.textContent = `Successfully uploaded ${result.count} leads`;
+                uploadMessage.style.display = 'block';
+                uploadError.style.display = 'none';
+                
+                // Refresh leads table
+                await loadLeads();
+            } catch (error) {
+                console.error('Error uploading CSV:', error);
+                uploadError.textContent = 'Failed to upload CSV. Please try again.';
+                uploadError.style.display = 'block';
+                uploadMessage.style.display = 'none';
+            }
+        }
+
+        async function connectMetaAds() {
+            const metaMessage = document.getElementById('metaMessage');
+            const metaError = document.getElementById('metaError');
+
+            try {
+                const response = await fetchWithAuth('http://127.0.0.1:5000/connect_meta');
+                
+                if (!response || !response.ok) {
+                    throw new Error('Failed to connect to Meta Ads');
+                }
+
+                const result = await response.json();
+                if (result.auth_url) {
+                    window.location.href = result.auth_url;
+                } else {
+                    metaMessage.textContent = 'Successfully connected to Meta Ads';
+                    metaMessage.style.display = 'block';
+                    metaError.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error connecting to Meta Ads:', error);
+                metaError.textContent = 'Failed to connect to Meta Ads. Please try again.';
+                metaError.style.display = 'block';
+                metaMessage.style.display = 'none';
+            }
+        }
+
+        async function fetchMetaLeads() {
+            const metaMessage = document.getElementById('metaMessage');
+            const metaError = document.getElementById('metaError');
+
+            try {
+                const response = await fetchWithAuth('http://127.0.0.1:5000/fetch_meta_leads');
+                
+                if (!response || !response.ok) {
+                    throw new Error('Failed to fetch Meta leads');
+                }
+
+                const result = await response.json();
+                metaMessage.textContent = `Successfully fetched ${result.count} leads from Meta Ads`;
+                metaMessage.style.display = 'block';
+                metaError.style.display = 'none';
+                
+                // Refresh leads table
+                await loadLeads();
+            } catch (error) {
+                console.error('Error fetching Meta leads:', error);
+                metaError.textContent = 'Failed to fetch Meta leads. Please try again.';
+                metaError.style.display = 'block';
+                metaMessage.style.display = 'none';
+            }
+        }
+
+        function loadLeads() {
+            fetchWithAuth('http://127.0.0.1:5000/leads')
+                .then(response => {
+                    if (!response || !response.ok) {
+                        throw new Error('Failed to fetch leads');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const tbody = document.getElementById('leadsTableBody');
+                    tbody.innerHTML = '';
+                    
+                    if (!Array.isArray(data)) {
+                        console.error('Expected array of leads, got:', data);
+                        throw new Error('Invalid data format');
+                    }
+                    
+                    data.forEach(lead => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${lead.name || '-'}</td>
+                            <td>${lead.email || '-'}</td>
+                            <td>${lead.phone || '-'}</td>
+                            <td>${lead.city || '-'}</td>
+                            <td>${lead.source || '-'}</td>
+                            <td>${lead.status || '-'}</td>
+                            <td>${lead.created_at ? new Date(lead.created_at).toLocaleString() : '-'}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="editLead(${lead.id})">Edit</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteLead(${lead.id})">Delete</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading leads:', error);
+                    alert('Error loading leads. Please try again.');
+                });
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', loadLeads);
+    </script>
+</body>
+</html>

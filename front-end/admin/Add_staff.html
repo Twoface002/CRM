@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Signup</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="password"], 
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button[type="submit"] {
+            background-color: #4CAF50; 
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .exit-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+        .exit-button:hover {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="exit-button" onclick="window.location.href='admin_staff_monitor.html'">&times;</button>
+        <h1>Add_Staff</h1>
+
+        <form id="staffSignupForm">
+            <div class="form-group">
+                <label for="staffName">Full Name:</label>
+                <input type="text" id="staffName" name="staffName" required placeholder="Enter staff name">
+            </div>
+            <div class="form-group">
+                <label for="staffEmail">Email Address:</label>
+                <input type="email" id="staffEmail" name="staffEmail" required placeholder="Enter email">
+            </div>
+            <div class="form-group">
+                <label for="staffPhone">Phone Number:</label>
+                <input type="text" id="staffPhone" name="staffPhone" required placeholder="Enter phone number">
+            </div>
+            <div class="form-group">
+                <label for="staffPassword">Password:</label>
+                <input type="password" id="staffPassword" name="staffPassword" required placeholder="Create password">
+            </div>
+            <div class="form-group">
+                <label for="staffConfirmPassword">Confirm Password:</label>
+                <input type="password" id="staffConfirmPassword" name="staffConfirmPassword" required placeholder="Confirm password">
+            </div><br>
+           <center>
+            <button type="submit">Register</button>
+        </center><div id="formMessage" class="message" style="display: none;"></div>
+        </form>
+    </div>
+
+    <script>
+        
+        function simpleHash(password) {
+            let hash = 0;
+            for (let i = 0; i < password.length; i++) {
+                const charCode = password.charCodeAt(i);
+                hash = ((hash << 5) - hash) + charCode;
+                hash = hash & hash;
+            }
+            return String(hash);
+        }
+
+
+        document.getElementById('staffSignupForm').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+
+            const staffName = document.getElementById('staffName').value;
+            const staffEmail = document.getElementById('staffEmail').value;
+            const staffPassword = document.getElementById('staffPassword').value;
+            const staffConfirmPassword = document.getElementById('staffConfirmPassword').value;
+            const staffPhone = document.getElementById('staffPhone').value;
+            const formMessageDiv = document.getElementById('formMessage');
+
+            if (!staffName || !staffEmail || !staffPassword || !staffConfirmPassword || !staffPhone) {
+                showMessage('error', 'Please fill in all required fields (Name, Email, Password, Confirm Password, Phone Number).');
+                return;
+            }
+
+            if (staffPassword !== staffConfirmPassword) {
+                showMessage('error', 'Passwords do not match.');
+                return;
+            }
+
+            if (staffPassword.length < 6) { 
+                showMessage('error', 'Password must be at least 6 characters long.');
+                return;
+            }
+
+
+            
+            function addStaffToLocalStorage(name, email, password, phone) {
+                let staffList = JSON.parse(localStorage.getItem('staffList') || '[]');
+               
+                if (staffList.find(staff => staff.email === email)) {
+                    return { success: false, message: 'Email already registered for staff.' };
+                }
+
+                
+                const hashedPassword = simpleHash(password); 
+
+                const newStaff = { name: name, email: email, passwordHash: hashedPassword, phone: phone, role: 'Staff', status: 'Offline' };
+                staffList.push(newStaff);
+                localStorage.setItem('staffList', JSON.stringify(staffList));
+                return { success: true, message: 'Staff signed up successfully!' };
+            }
+
+            const signupResult = addStaffToLocalStorage(staffName, staffEmail, staffPassword, staffPhone); // Default role is 'Staff'
+
+            if (signupResult.success) {
+                showMessage('success', signupResult.message);
+                document.getElementById('staffSignupForm').reset(); 
+            } else {
+                showMessage('error', signupResult.message);
+            }
+
+            function showMessage(type, text) {
+                formMessageDiv.textContent = text;
+                formMessageDiv.className = `message ${type}`;
+                formMessageDiv.style.display = 'block';
+                setTimeout(() => { 
+                    formMessageDiv.style.display = 'none';
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>

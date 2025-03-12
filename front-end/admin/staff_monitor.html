@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Monitor - CRM Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --header-height: 3rem;
+            --nav-width: 68px;
+            --first-color: #4723D9;
+            --first-color-light: #AFA5D9;
+            --white-color: #F7F6FB;
+            --body-font: 'Nunito', sans-serif;
+            --normal-font-size: 1rem;
+            --z-fixed: 100;
+        }
+
+        body {
+            position: relative;
+            margin: var(--header-height) 0 0 0;
+            padding: 0 1rem;
+            font-family: var(--body-font);
+            font-size: var(--normal-font-size);
+            transition: 0.5s;
+        }
+
+        .header {
+            width: 100%;
+            height: var(--header-height);
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+            background-color: var(--white-color);
+            z-index: var(--z-fixed);
+            transition: 0.5s;
+        }
+
+        .table-responsive {
+            margin: 2rem 0;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .staff-table {
+            width: 100%;
+            background-color: white;
+            border-radius: 10px;
+        }
+
+        .staff-table th {
+            background-color: #4723D9;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        .staff-table td {
+            padding: 12px 15px;
+        }
+
+        .staff-table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .status-inactive {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .search-box {
+            margin: 1rem 0;
+            padding: 1rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4723D9;
+        }
+
+        .progress {
+            height: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body id="body-pd">
+    <div class="container-fluid">
+        <!-- Search and Filter Section -->
+        <div class="search-box">
+            <div class="row">
+                <div class="col-md-4">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search staff...">
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" id="statusFilter">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-primary" onclick="refreshStaffData()">
+                        <i class='bx bx-refresh'></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h6>Total Staff</h6>
+                    <div class="stats-number" id="totalStaff">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h6>Active Now</h6>
+                    <div class="stats-number" id="activeStaff">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h6>Total Leads Assigned</h6>
+                    <div class="stats-number" id="totalLeads">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h6>Conversion Rate</h6>
+                    <div class="stats-number" id="conversionRate">0%</div>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff Table -->
+        <div class="table-responsive">
+            <table class="table staff-table">
+                <thead>
+                    <tr>
+                        <th>Staff Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Total Leads</th>
+                        <th>New Leads</th>
+                        <th>Contacted</th>
+                        <th>Converted</th>
+                        <th>Last Active</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="staffTableBody">
+                    <!-- Table content will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Fetch with authentication
+        async function fetchWithAuth(url, options = {}) {
+            const token = localStorage.getItem('token');
+            const defaultOptions = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+            return fetch(url, { ...defaultOptions, ...options });
+        }
+
+        // Load staff data
+        async function loadStaffData() {
+            try {
+                const response = await fetchWithAuth('http://127.0.0.1:5000/staff_stats');
+                if (!response.ok) throw new Error('Failed to fetch staff data');
+                
+                const data = await response.json();
+                updateStaffTable(data);
+                updateStatsCards(data);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error loading staff data');
+            }
+        }
+
+        // Update staff table
+        function updateStaffTable(staffData) {
+            const tableBody = document.getElementById('staffTableBody');
+            tableBody.innerHTML = '';
+
+            staffData.forEach(staff => {
+                const row = document.createElement('tr');
+                const lastActive = new Date(staff.last_active || Date.now());
+                const isActive = (Date.now() - lastActive) < 5 * 60 * 1000; // 5 minutes
+
+                row.innerHTML = `
+                    <td>${staff.staff_name}</td>
+                    <td>${staff.staff_email}</td>
+                    <td>
+                        <span class="status-badge ${isActive ? 'status-active' : 'status-inactive'}">
+                            ${isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td>${staff.total_leads}</td>
+                    <td>${staff.new_leads}</td>
+                    <td>${staff.contacted_leads}</td>
+                    <td>${staff.converted_leads}</td>
+                    <td>${formatDate(staff.last_active)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="viewStaffDetails(${staff.staff_id})">
+                            <i class='bx bx-show'></i>
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="assignLeads(${staff.staff_id})">
+                            <i class='bx bx-transfer'></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Update stats cards
+        function updateStatsCards(staffData) {
+            const totalStaff = staffData.length;
+            const activeStaff = staffData.filter(staff => 
+                (Date.now() - new Date(staff.last_active || Date.now())) < 5 * 60 * 1000
+            ).length;
+            
+            const totalLeads = staffData.reduce((sum, staff) => sum + staff.total_leads, 0);
+            const convertedLeads = staffData.reduce((sum, staff) => sum + staff.converted_leads, 0);
+            const conversionRate = totalLeads ? ((convertedLeads / totalLeads) * 100).toFixed(1) : 0;
+
+            document.getElementById('totalStaff').textContent = totalStaff;
+            document.getElementById('activeStaff').textContent = activeStaff;
+            document.getElementById('totalLeads').textContent = totalLeads;
+            document.getElementById('conversionRate').textContent = `${conversionRate}%`;
+            
+            // Update progress bar
+            document.querySelector('.progress-bar').style.width = `${conversionRate}%`;
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return 'Never';
+            const date = new Date(dateString);
+            return date.toLocaleString();
+        }
+
+        // View staff details
+        function viewStaffDetails(staffId) {
+            window.location.href = `staff_details.html?id=${staffId}`;
+        }
+
+        // Assign leads
+        async function assignLeads(staffId) {
+            try {
+                const response = await fetchWithAuth('http://127.0.0.1:5000/unassigned_leads');
+                if (!response.ok) throw new Error('Failed to fetch unassigned leads');
+                
+                const leads = await response.json();
+                // Show modal with leads list (implementation needed)
+                alert('Lead assignment feature coming soon!');
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error fetching unassigned leads');
+            }
+        }
+
+        // Search and filter functionality
+        document.getElementById('searchInput').addEventListener('input', filterTable);
+        document.getElementById('statusFilter').addEventListener('change', filterTable);
+
+        function filterTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const rows = document.getElementById('staffTableBody').getElementsByTagName('tr');
+
+            for (let row of rows) {
+                const name = row.cells[0].textContent.toLowerCase();
+                const email = row.cells[1].textContent.toLowerCase();
+                const status = row.cells[2].textContent.trim().toLowerCase();
+
+                const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+                const matchesStatus = !statusFilter || status === statusFilter;
+
+                row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+            }
+        }
+
+        // Refresh data
+        function refreshStaffData() {
+            loadStaffData();
+        }
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', loadStaffData);
+
+        // Auto refresh every 1 minute
+        setInterval(loadStaffData, 60000);
+    </script>
+</body>
+</html> 
