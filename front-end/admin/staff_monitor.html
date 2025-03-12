@@ -8,119 +8,271 @@
     <link href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css" rel="stylesheet">
     <style>
         :root {
-            --header-height: 3rem;
-            --nav-width: 68px;
-            --first-color: #4723D9;
-            --first-color-light: #AFA5D9;
-            --white-color: #F7F6FB;
-            --body-font: 'Nunito', sans-serif;
-            --normal-font-size: 1rem;
-            --z-fixed: 100;
+            --primary-color: #4723D9;
+            --primary-light: rgba(71, 35, 217, 0.1);
+            --primary-dark: #3a1bb3;
+            --text-dark: #333;
+            --text-light: #666;
+            --bg-light: #f8f9fa;
+            --white: #fff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --border-radius: 10px;
+            --shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        header nav ul {
+            list-style: none;
+            text-align: center;
+            padding: 0;
+            margin: 0;
+        }
+
+        header nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+
+        header nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            transition: var(--transition);
+        }
+
+        header nav ul li a:hover {
+            color: var(--primary-light);
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 1000;
         }
 
         body {
-            position: relative;
-            margin: var(--header-height) 0 0 0;
-            padding: 0 1rem;
-            font-family: var(--body-font);
-            font-size: var(--normal-font-size);
-            transition: 0.5s;
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 0 20px 80px 20px; /* Added bottom padding for footer */
         }
 
-        .header {
-            width: 100%;
-            height: var(--header-height);
-            position: fixed;
-            top: 0;
-            left: 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1rem;
-            background-color: var(--white-color);
-            z-index: var(--z-fixed);
-            transition: 0.5s;
-        }
-
-        .table-responsive {
-            margin: 2rem 0;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-
-        .staff-table {
-            width: 100%;
-            background-color: white;
-            border-radius: 10px;
-        }
-
-        .staff-table th {
-            background-color: #4723D9;
-            color: white;
-            padding: 15px;
-            text-align: left;
-        }
-
-        .staff-table td {
-            padding: 12px 15px;
-        }
-
-        .staff-table tbody tr:hover {
-            background-color: #f5f5f5;
-        }
-
-        .status-badge {
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .status-active {
-            background-color: #28a745;
-            color: white;
-        }
-
-        .status-inactive {
-            background-color: #dc3545;
-            color: white;
+        .container-fluid {
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         .search-box {
-            margin: 1rem 0;
-            padding: 1rem;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--white);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .search-box input, .search-box select {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        .search-box input:focus, .search-box select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px var(--primary-light);
         }
 
         .stats-card {
-            background-color: white;
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            height: 100%;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stats-card h6 {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
         }
 
         .stats-number {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: bold;
-            color: #4723D9;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .table-responsive {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .staff-table {
+            margin: 0;
+        }
+
+        .staff-table th {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 15px 20px;
+            font-weight: 600;
+            border: none;
+        }
+
+        .staff-table td {
+            padding: 15px 20px;
+            vertical-align: middle;
+            color: var(--text-dark);
+            border-bottom: 1px solid #eee;
+        }
+
+        .staff-table tbody tr {
+            transition: var(--transition);
+        }
+
+        .staff-table tbody tr:hover {
+            background-color: var(--primary-light);
+        }
+
+        .status-badge {
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .status-active {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+
+        .status-inactive {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-info {
+            background-color: #17a2b8;
+            border: none;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #138496;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.875rem;
         }
 
         .progress {
-            height: 10px;
+            height: 8px;
+            background-color: var(--primary-light);
             margin-top: 10px;
+        }
+
+        .progress-bar {
+            background-color: var(--success);
+            transition: var(--transition);
+        }
+
+        .add-staff-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 10px rgba(71, 35, 217, 0.3);
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+        }
+
+        .add-staff-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(71, 35, 217, 0.4);
         }
     </style>
 </head>
-<body id="body-pd">
+<body>
+    <!-- Header Section -->
+    <header>
+        <h1>Money Krishna Education</h1>
+        <nav>
+            <ul>
+                <li><a href="admin_dashboard.html">Home</a></li>
+                <li><a href="staff_monitor.html">Staff</a></li>
+                <li><a href="Leads.html">Leads</a></li>
+                <li><a href="meta.html">Meta</a></li>
+            </ul>
+        </nav>
+    </header>
+
     <div class="container-fluid">
         <!-- Search and Filter Section -->
         <div class="search-box">
-            <div class="row">
+            <div class="row g-3">
                 <div class="col-md-4">
-                    <input type="text" id="searchInput" class="form-control" placeholder="Search staff...">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search staff by name or email...">
                 </div>
                 <div class="col-md-4">
                     <select class="form-select" id="statusFilter">
@@ -130,15 +282,15 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <button class="btn btn-primary" onclick="refreshStaffData()">
-                        <i class='bx bx-refresh'></i> Refresh
+                    <button class="btn btn-primary w-100" onclick="refreshStaffData()">
+                        <i class='bx bx-refresh me-2'></i> Refresh Data
                     </button>
                 </div>
             </div>
         </div>
 
         <!-- Stats Cards -->
-        <div class="row mb-4">
+        <div class="row g-4">
             <div class="col-md-3">
                 <div class="stats-card">
                     <h6>Total Staff</h6>
@@ -162,7 +314,7 @@
                     <h6>Conversion Rate</h6>
                     <div class="stats-number" id="conversionRate">0%</div>
                     <div class="progress">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
@@ -191,32 +343,79 @@
         </div>
     </div>
 
+    <!-- Add Staff Button -->
+    <button onclick="window.location.href='add_staff.html'" class="add-staff-btn" title="Add New Staff">
+        <i class='bx bx-plus'></i>
+    </button>
+
+    <!-- Footer Section -->
+    <footer>
+        <p>&copy; 2025 Money Krishna Education. All rights reserved.</p>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Fetch with authentication
         async function fetchWithAuth(url, options = {}) {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                console.error('No authentication token found');
+                window.location.href = '../index.html';
+                return null;
+            }
+            
             const defaultOptions = {
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'include'
             };
-            return fetch(url, { ...defaultOptions, ...options });
+            
+            try {
+                const response = await fetch(url, { 
+                    ...defaultOptions, 
+                    ...options,
+                    headers: {
+                        ...defaultOptions.headers,
+                        ...(options.headers || {})
+                    }
+                });
+                
+                if (response.status === 401) {
+                    console.error('Authentication error');
+                    localStorage.clear();
+                    window.location.href = '../index.html';
+                    return null;
+                }
+                
+                return response;
+            } catch (error) {
+                console.error('API request failed:', error);
+                return null;
+            }
         }
 
         // Load staff data
         async function loadStaffData() {
             try {
                 const response = await fetchWithAuth('http://127.0.0.1:5000/staff_stats');
-                if (!response.ok) throw new Error('Failed to fetch staff data');
+                if (!response) {
+                    throw new Error('Failed to fetch staff data - no response');
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch staff data: ${response.status}`);
+                }
                 
                 const data = await response.json();
+                console.log('Staff data received:', data);
                 updateStaffTable(data);
                 updateStatsCards(data);
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error loading staff data');
+                alert('Error loading staff data. Please try again.');
             }
         }
 

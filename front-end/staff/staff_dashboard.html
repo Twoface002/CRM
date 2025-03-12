@@ -169,129 +169,97 @@
     </div>
 
     <script>
-        async function fetchProfileName() {
-            try {
-                const token = localStorage.getItem('jwt_token');
-                if (!token) {
-                    window.location.href = '../index.html';
-                    return;
-                }
-
-                const response = await fetch('http://127.0.0.1:5000/profile', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    credentials: 'include',
-                    mode: 'cors'
-                });
-
-                if (response.status === 401 || response.status === 422) {
-                    console.error('Authentication error:', await response.text());
-                    localStorage.clear();
-                    window.location.href = '../index.html';
-                    return;
-                }
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                document.getElementById('profileName').textContent = data.name || data.email;
-            } catch (error) {
-                console.error('Error fetching profile:', error);
-                document.getElementById('profileName').textContent = 'Error loading profile';
-            }
-        }
-
-        async function fetchWithAuth(url) {
-            const token = localStorage.getItem('jwt_token');
-            if (!token) {
-                window.location.href = '../index.html';
-                return null;
-            }
-
-            try {
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    credentials: 'include',
-                    mode: 'cors'
-                });
-
-                if (response.status === 401 || response.status === 422) {
-                    console.error('Authentication error:', await response.text());
-                    localStorage.clear();
-                    window.location.href = '../index.html';
-                    return null;
-                }
-
-                return response;
-            } catch (error) {
-                console.error('API request failed:', error);
-                return null;
-            }
-        }
-
         async function fetchFollowup() {
-            const response = await fetchWithAuth('http://127.0.0.1:5000/followup');
-            if (response && response.ok) {
+            const response = await fetch('http://localhost:5000/followup', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
+                },
+            });
+            if (response.ok) {
                 const data = await response.json();
                 document.getElementById('followupCount').textContent = data.length;
             } else {
-                document.getElementById('followupCount').textContent = 'Error';
+                console.error('Failed to fetch followup data');
             }
         }
 
         async function fetchAccountOpen() {
-            const response = await fetchWithAuth('http://127.0.0.1:5000/account_open');
-            if (response && response.ok) {
+            const response = await fetch('http://localhost:5000/account_open', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
+                },
+            });
+            if (response.ok) {
                 const data = await response.json();
                 document.getElementById('accountOpenCount').textContent = data.length;
             } else {
-                document.getElementById('accountOpenCount').textContent = 'Error';
+                console.error('Failed to fetch account open data');
             }
         }
 
         async function fetchSale() {
-            const response = await fetchWithAuth('http://127.0.0.1:5000/sale');
-            if (response && response.ok) {
+            const response = await fetch('http://localhost:5000/sale', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
+                },
+            });
+            if (response.ok) {
                 const data = await response.json();
                 document.getElementById('saleCount').textContent = data.length;
             } else {
-                document.getElementById('saleCount').textContent = 'Error';
+                console.error('Failed to fetch sale data');
             }
         }
 
         async function fetchNewLeads() {
-            const response = await fetchWithAuth('http://127.0.0.1:5000/new_leads');
-            if (response && response.ok) {
+            const response = await fetch('http://localhost:5000/new_leads', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
+                },
+            });
+            if (response.ok) {
                 const data = await response.json();
                 document.getElementById('newLeadsCount').textContent = data.length;
             } else {
-                document.getElementById('newLeadsCount').textContent = 'Error';
+                console.error('Failed to fetch new leads');
             }
         }
 
         function logout() {
-            localStorage.clear();
-            window.location.href = '../index.html';
+            localStorage.removeItem('userToken');
+            localStorage.removeItem('userData');
+            window.location.href = '/CRM/front-end/index.html'; // Redirect to login page
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            fetchProfileName();
+        async function fetchProfileName() {
+            const response = await fetch('http://localhost:5000/profile', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
+                },
+            });
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('profileName').textContent = data.name;
+            } else {
+                console.error('Failed to fetch profile name');
+            }
+        }
+
+        function updateDashboardMetrics() {
             fetchFollowup();
             fetchAccountOpen();
             fetchSale();
             fetchNewLeads();
-        });
+            setInterval(updateDashboardMetrics, 30000);
+            loadProfileName();
+        }
+
+        updateDashboardMetrics();
     </script>
              <!-- Footer Section -->
         <footer>

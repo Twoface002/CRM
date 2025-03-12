@@ -124,102 +124,14 @@
     </style>
 </head>
 <body>
-    <script>
-        // Check authentication on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const token = localStorage.getItem('jwt_token');
-            const userRole = localStorage.getItem('user_role');
-            
-            if (!token || userRole !== 'admin') {
-                alert('Please log in with admin credentials');
-                window.location.href = '../index.html';
-                return;
-            }
-
-            // Function to make authenticated API requests
-            async function fetchWithAuth(url, options = {}) {
-                const defaultOptions = {
-                    ...options,
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        ...(options.headers || {})
-                    }
-                };
-
-                try {
-                    console.log('Making request to:', url, 'with options:', defaultOptions);
-                    const response = await fetch(url, defaultOptions);
-
-                    if (response.status === 401 || response.status === 422) {
-                        console.error('Authentication error:', await response.text());
-                        localStorage.clear();
-                        window.location.href = '../index.html';
-                        return null;
-                    }
-
-                    return response;
-                } catch (error) {
-                    console.error('API request failed:', error);
-                    return null;
-                }
-            }
-
-            // Load dashboard data
-            async function loadDashboardData() {
-                try {
-                    // Load staff data
-                    const staffResponse = await fetchWithAuth('http://127.0.0.1:5000/staff');
-                    if (staffResponse && staffResponse.ok) {
-                        const staffData = await staffResponse.json();
-                        console.log('Staff data:', staffData);
-                        const onlineStaffCount = staffData.filter(staff => staff.last_active && 
-                            new Date(staff.last_active) > new Date(Date.now() - 5 * 60 * 1000)).length;
-                        document.getElementById('staffOnlineCount').textContent = onlineStaffCount;
-                    }
-
-                    // Load leads data
-                    const leadsResponse = await fetchWithAuth('http://127.0.0.1:5000/leads');
-                    if (leadsResponse && leadsResponse.ok) {
-                        const leadsData = await leadsResponse.json();
-                        console.log('Leads data:', leadsData);
-                        document.getElementById('totalLeadsCount').textContent = leadsData.length;
-                    }
-
-                    // Load profile data
-                    const profileResponse = await fetchWithAuth('http://127.0.0.1:5000/profile');
-                    if (profileResponse && profileResponse.ok) {
-                        const profileData = await profileResponse.json();
-                        console.log('Profile data:', profileData);
-                        document.getElementById('profileName').textContent = profileData.name || profileData.email;
-                    }
-                } catch (error) {
-                    console.error('Error loading dashboard data:', error);
-                }
-            }
-
-            // Initial load
-            loadDashboardData();
-
-            // Refresh data every 30 seconds
-            setInterval(loadDashboardData, 30000);
-        });
-
-        // Logout function
-        function logout() {
-            localStorage.clear();
-            window.location.href = '../index.html';
-        }
-    </script>
-
-    <header>
+      <!-- Header Section -->
+      <header>
         <h1>Money Krishna Education</h1><br><br>
         <nav>
             <!-- Navigation links or logo can go here -->
             <ul>
                 <li><a href="admin_dashboard.html">Home</a></li>
-                <li><a href="admin_staff_monitor.html">Staff</a></li>
+                <li><a href="staff_monitor.html">Staff</a></li>
                 <li><a href="Leads.html">Leads</a></li>
                 <li><a href="meta.html">Meta</a></li>
             </ul>
@@ -227,7 +139,7 @@
         <div class="profile" style="float: right; margin-right: 20px;">
             <span id="profileName">Loading...</span>
             <div class="profile-dropdown">
-                <a href="../profile.html">Profile</a>
+                <a href="/web_page/profile.html">Profile</a>
                 <a href="#" onclick="logout()">Logout</a>
             </div>
         </div>
@@ -255,5 +167,69 @@
  <footer>
     <p>&copy; 2025 Money Krishna Education. All rights reserved.</p>
 </footer>
+    
+
+<script>
+    async function fetchLeads() {
+    try {
+        const response = await fetch('http://localhost:5000/leads', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
+            },
+        });
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('totalLeadsCount').textContent = data.length;
+        } else {
+            console.error('Failed to fetch leads');
+            alert('Failed to fetch leads. Please try again later.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please check your connection.');
+    }
+}
+async function fetchStaff() {
+    const response = await fetch('http://localhost:5000/staff', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
+        },
+    });
+    if (response.ok) {
+        const data = await response.json();
+        const onlineStaffCount = data.filter(staff => staff.status === 'online').length;
+        document.getElementById('staffOnlineCount').textContent = onlineStaffCount;
+    } else {
+        console.error('Failed to fetch staff');
+    }
+}   
+    function logout() {
+        localStorage.removeItem('jwt_token');
+        window.location.href = '/web_page/signin_signup.html';
+    }
+
+    async function fetchProfileName() {
+        const response = await fetch('http://localhost:5000/profile', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
+            },
+        });
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('profileName').textContent = data.name;
+        } else {
+            console.error('Failed to fetch profile name');
+        }
+    }
+
+    fetchLeads();
+    fetchStaff();
+    fetchProfileName();
+    setInterval(fetchLeads, 30000);
+    setInterval(fetchStaff, 30000);
+</script>
 </body>
 </html>
