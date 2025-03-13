@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Details - Money Krishna Education</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --background: #f8fafc;
+            --sidebar: #1e293b;
+            --sidebar-hover: #334155;
+            --text-primary: #1f2937;
+            --text-secondary: #64748b;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background: var(--sidebar);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-logo {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-links {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--sidebar-hover);
+            color: white;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+            width: calc(100% - 250px);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .header-title p {
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+        }
+
+        .profile-info {
+            text-align: right;
+        }
+
+        .profile-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .profile-role {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            min-width: 200px;
+            display: none;
+            z-index: 100;
+        }
+
+        .profile-section:hover .profile-dropdown {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Icon styles */
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        :root {
+            --primary-color: #4723D9;
+            --primary-light: rgba(71, 35, 217, 0.1);
+            --primary-dark: #3a1bb3;
+            --text-dark: #333;
+            --text-light: #666;
+            --bg-light: #f8f9fa;
+            --white: #fff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --border-radius: 10px;
+            --shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        header nav ul {
+            list-style: none;
+            text-align: center;
+            padding: 0;
+            margin: 0;
+        }
+
+        header nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+
+        header nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            transition: var(--transition);
+        }
+
+        header nav ul li a:hover {
+            color: var(--primary-light);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .staff-profile {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 30px;
+        }
+
+        .profile-image i {
+            font-size: 48px;
+            color: var(--primary-color);
+        }
+
+        .profile-info h2 {
+            margin: 0;
+            color: var(--text-dark);
+        }
+
+        .profile-info p {
+            margin: 5px 0;
+            color: var(--text-light);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .status-active {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+
+        .status-inactive {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card h3 {
+            margin: 0;
+            color: var(--text-light);
+            font-size: 16px;
+        }
+
+        .stat-card p {
+            margin: 10px 0 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .activity-section {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .activity-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .activity-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+
+        .activity-icon i {
+            color: var(--primary-color);
+            font-size: 20px;
+        }
+
+        .activity-content {
+            flex-grow: 1;
+        }
+
+        .activity-content h4 {
+            margin: 0;
+            color: var(--text-dark);
+            font-size: 16px;
+        }
+
+        .activity-content p {
+            margin: 5px 0 0;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .activity-time {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .btn-edit {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-edit:hover {
+            background-color: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-logo">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M21 4H3a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 15H3V6h18v13zM9 8h2v9H9V8zm4 0h2v9h-2V8zm4 0h2v9h-2V8z"/>
+            </svg>
+            <span>Money Krishna</span>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a href="admin_dashboard.html" class="nav-link">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="staff_monitor.html" class="nav-link active">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4zm-6 4c.22-.72 3.31-2 6-2 2.7 0 5.8 1.29 6 2H6zm6-15c1.11 0 2 .89 2 2 0 1.11-.89 2-2 2-1.11 0-2-.89-2-2 0-1.11.89-2 2-2z"/>
+                    </svg>
+                    <span>Staff Monitor</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="Leads.html" class="nav-link">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7V8zm4-3h2v10h-2V8zm4 6h2v4h-2v4z"/>
+                    </svg>
+                    <span>Leads</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="meta.html" class="nav-link">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.49L17.5 6.5 9.99 9.99 6.5 17.5zm5.5-6.6c.61 0 1.1.49 1.1 1.1s-.49 1.1-1.1 1.1-1.1-.49-1.1-1.1.49-1.1 1.1-1.1z"/>
+                    </svg>
+                    <span>Meta Ads</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="reports.html" class="nav-link">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7V8zm4-3h2v10h-2V8zm4 6h2v4h-2v4z"/>
+                    </svg>
+                    <span>Reports</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="settings.html" class="nav-link">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+                    </svg>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="header">
+            <div class="header-title">
+                <h1>Staff Details</h1>
+                <p>View and manage staff member information</p>
+            </div>
+            <div class="profile-section">
+                <div class="profile-info">
+                    <div class="profile-name" id="profileNameShort">Loading...</div>
+                    <div class="profile-role">Admin</div>
+                </div>
+                <div class="profile-avatar" id="profileAvatar">A</div>
+                <div class="profile-dropdown">
+                    <a href="../profile.html" class="dropdown-item">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                        <span>Profile</span>
+                    </a>
+                    <a href="#" class="dropdown-item" onclick="logout()">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                        </svg>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Staff Profile Section -->
+            <div class="staff-profile">
+                <div class="profile-header">
+                    <div class="profile-image">
+                        <i class='bx bxs-user'></i>
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="staffName">Loading...</h2>
+                        <p id="staffEmail">Loading...</p>
+                        <p id="staffPhone">Loading...</p>
+                        <span id="staffStatus" class="status-badge">Loading...</span>
+                        <button class="btn-edit" onclick="editStaffDetails()">
+                            <i class='bx bxs-edit'></i> Edit Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Leads</h3>
+                    <p id="totalLeads">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Contacted</h3>
+                    <p id="contactedLeads">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Converted</h3>
+                    <p id="convertedLeads">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Conversion Rate</h3>
+                    <p id="conversionRate">0%</p>
+                </div>
+            </div>
+
+            <!-- Recent Activity Section -->
+            <div class="activity-section">
+                <div class="activity-header">
+                    <h3>Recent Activity</h3>
+                </div>
+                <ul class="activity-list" id="activityList">
+                    <!-- Activity items will be populated by JavaScript -->
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Add authentication and profile loading
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('jwt_token');
+            const userRole = localStorage.getItem('user_role');
+            
+            if (!token || userRole !== 'admin') {
+                alert('Please log in with admin credentials');
+                window.location.href = '../index.html';
+                return;
+            }
+
+            loadProfileData();
+        });
+
+        async function loadProfileData() {
+            const token = localStorage.getItem('jwt_token');
+            try {
+                const response = await fetch('http://127.0.0.1:5000/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const profileData = await response.json();
+                    const name = profileData.name || profileData.email;
+                    document.getElementById('profileNameShort').textContent = name;
+                    document.getElementById('profileAvatar').textContent = name.charAt(0).toUpperCase();
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '../index.html';
+        }
+
+        // Get staff ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const staffId = urlParams.get('id');
+
+        // Fetch with authentication
+        async function fetchWithAuth(url, options = {}) {
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                window.location.href = '../index.html';
+                return null;
+            }
+
+            const defaultOptions = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'include'
+            };
+
+            try {
+                const response = await fetch(url, { 
+                    ...defaultOptions, 
+                    ...options,
+                    headers: {
+                        ...defaultOptions.headers,
+                        ...(options.headers || {})
+                    }
+                });
+
+                if (response.status === 401) {
+                    localStorage.clear();
+                    window.location.href = '../index.html';
+                    return null;
+                }
+
+                return response;
+            } catch (error) {
+                console.error('API request failed:', error);
+                return null;
+            }
+        }
+
+        // Load staff details
+        async function loadStaffDetails() {
+            try {
+                const response = await fetchWithAuth(`http://127.0.0.1:5000/staff/${staffId}`);
+                if (!response || !response.ok) throw new Error('Failed to fetch staff details');
+
+                const data = await response.json();
+                
+                // Update profile section
+                document.getElementById('staffName').textContent = data.name;
+                document.getElementById('staffEmail').textContent = data.email;
+                document.getElementById('staffPhone').textContent = data.phone;
+                
+                const isActive = new Date(data.last_active || 0) > new Date(Date.now() - 5 * 60 * 1000);
+                const statusBadge = document.getElementById('staffStatus');
+                statusBadge.textContent = isActive ? 'Active' : 'Inactive';
+                statusBadge.className = `status-badge ${isActive ? 'status-active' : 'status-inactive'}`;
+
+                // Update stats
+                document.getElementById('totalLeads').textContent = data.total_leads || 0;
+                document.getElementById('contactedLeads').textContent = data.contacted_leads || 0;
+                document.getElementById('convertedLeads').textContent = data.converted_leads || 0;
+                
+                const conversionRate = data.total_leads ? 
+                    ((data.converted_leads / data.total_leads) * 100).toFixed(1) : 0;
+                document.getElementById('conversionRate').textContent = `${conversionRate}%`;
+
+                // Load recent activity
+                await loadRecentActivity();
+
+            } catch (error) {
+                console.error('Error loading staff details:', error);
+                alert('Error loading staff details. Please try again.');
+            }
+        }
+
+        // Load recent activity
+        async function loadRecentActivity() {
+            try {
+                const response = await fetchWithAuth(`http://127.0.0.1:5000/staff/${staffId}/activity`);
+                if (!response || !response.ok) throw new Error('Failed to fetch activity');
+
+                const activities = await response.json();
+                const activityList = document.getElementById('activityList');
+                activityList.innerHTML = '';
+
+                activities.forEach(activity => {
+                    const li = document.createElement('li');
+                    li.className = 'activity-item';
+                    li.innerHTML = `
+                        <div class="activity-icon">
+                            <i class='bx ${getActivityIcon(activity.type)}'></i>
+                        </div>
+                        <div class="activity-content">
+                            <h4>${activity.title}</h4>
+                            <p>${activity.description}</p>
+                        </div>
+                        <span class="activity-time">${formatDate(activity.timestamp)}</span>
+                    `;
+                    activityList.appendChild(li);
+                });
+
+            } catch (error) {
+                console.error('Error loading activity:', error);
+            }
+        }
+
+        // Helper function to get activity icon
+        function getActivityIcon(type) {
+            const icons = {
+                'lead': 'bxs-user-plus',
+                'contact': 'bxs-phone',
+                'conversion': 'bxs-check-circle',
+                'login': 'bxs-log-in-circle',
+                'default': 'bxs-bell'
+            };
+            return icons[type] || icons.default;
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString();
+        }
+
+        // Edit staff details
+        function editStaffDetails() {
+            // Implement edit functionality
+            alert('Edit functionality coming soon!');
+        }
+
+        // Initialize page
+        if (staffId) {
+            loadStaffDetails();
+        } else {
+            alert('No staff ID provided');
+            window.location.href = 'staff_monitor.html';
+        }
+    </script>
+</body>
+</html> 

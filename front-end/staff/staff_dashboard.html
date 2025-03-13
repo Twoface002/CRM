@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard - Money Krishna Education</title>
+    <style>
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url('../assets/fonts/Inter-Regular.woff2') format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 500;
+            font-display: swap;
+            src: url('../assets/fonts/Inter-Medium.woff2') format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 600;
+            font-display: swap;
+            src: url('../assets/fonts/Inter-SemiBold.woff2') format('woff2');
+        }
+
+        /* Remove old font-face declarations */
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --background: #f8fafc;
+            --sidebar: #1e293b;
+            --sidebar-hover: #334155;
+            --text-primary: #1f2937;
+            --text-secondary: #64748b;
+            --card-bg: #ffffff;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+
+     * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background: var(--sidebar);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-logo {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-links {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--sidebar-hover);
+            color: white;
+        }
+
+        .nav-link i {
+            font-size: 1.25rem;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+            width: calc(100% - 250px);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .header-title p {
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+        }
+
+        .profile-info {
+            text-align: right;
+        }
+
+        .profile-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .profile-role {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* Dashboard Cards */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 1rem;
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-footer {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .card-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: 500;
+        }
+
+        .card-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Profile Dropdown */
+        .profile-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            min-width: 200px;
+            display: none;
+            z-index: 100;
+        }
+
+        .profile-section:hover .profile-dropdown {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .dropdown-item i {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+        }
+
+        /* Recent Activity Table */
+        .activity-section {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .activity-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .activity-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .activity-table th {
+            text-align: left;
+            padding: 1rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .activity-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .activity-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+                padding: 1rem;
+            }
+
+            .sidebar-logo span, .nav-link span {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 80px;
+                width: calc(100% - 80px);
+            }
+
+            .nav-link {
+                justify-content: center;
+                padding: 0.75rem;
+            }
+
+            .nav-link i {
+                margin: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .activity-table {
+            display: block;
+                overflow-x: auto;
+            }
+        }
+
+        /* Icon styles */
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .icon-large {
+            width: 32px;
+            height: 32px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-logo">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M21 4H3a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 15H3V6h18v13zM9 8h2v9H9V8zm4 0h2v9h-2V8zm4 0h2v9h-2V8z"/>
+            </svg>
+            <span>Money Krishna</span>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a href="staff_dashboard.html" class="nav-link active">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="New_Leads.html" class="nav-link">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                    <span>New Leads</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="followup.html" class="nav-link">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M20 15.5c-1.2 0-2.4-.2-3.6-.6-.3-.1-.7 0-1 .2l-2.2 2.2c-2.8-1.4-5.1-3.8-6.6-6.6l2.2-2.2c.3-.3.4-.7.2-1-.3-1.1-.5-2.3-.5-3.5 0-.6-.4-1-1-1H4c-.6 0-1 .4-1 1 0 9.4 7.6 17 17 17 .6 0 1-.4 1-1v-3.5c0-.6-.4-1-1-1zM21 6h-3V3h-2v3h-3v2h3v3h2V8h3z"/>
+                    </svg>
+                    <span>Follow-ups</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="account_open.html" class="nav-link">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                    <span>Account Opening</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="sale.html" class="nav-link">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
+                    </svg>
+                    <span>Sales</span>
+                </a>
+            </li>
+            </ul>
+        </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="header">
+            <div class="header-title">
+                <h1>Staff Dashboard</h1>
+                <p>Welcome back, <span id="profileName">Loading...</span></p>
+            </div>
+            <div class="profile-section">
+                <div class="profile-info">
+                    <div class="profile-name" id="profileNameShort">Loading...</div>
+                    <div class="profile-role">Staff Member</div>
+                </div>
+                <div class="profile-avatar" id="profileAvatar">A</div>
+            <div class="profile-dropdown">
+                    <a href="../profile.html" class="dropdown-item">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                        <span>Profile</span>
+                    </a>
+                    <a href="#" class="dropdown-item" onclick="logout()">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                        </svg>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <svg class="icon-large" viewBox="0 0 24 24">
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="card-title">New Leads</div>
+                <div class="card-value" id="newLeadsCount">Loading...</div>
+                <div class="card-footer">
+                    <a href="New_Leads.html" class="card-link">
+                        View New Leads
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <svg class="icon-large" viewBox="0 0 24 24">
+                            <path d="M20 15.5c-1.2 0-2.4-.2-3.6-.6-.3-.1-.7 0-1 .2l-2.2 2.2c-2.8-1.4-5.1-3.8-6.6-6.6l2.2-2.2c.3-.3.4-.7.2-1-.3-1.1-.5-2.3-.5-3.5 0-.6-.4-1-1-1H4c-.6 0-1 .4-1 1 0 9.4 7.6 17 17 17 .6 0 1-.4 1-1v-3.5c0-.6-.4-1-1-1z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="card-title">Follow-ups Today</div>
+                <div class="card-value" id="followupCount">Loading...</div>
+                <div class="card-footer">
+                    <a href="followup.html" class="card-link">
+                        View Follow-ups
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <svg class="icon-large" viewBox="0 0 24 24">
+                            <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="card-title">Total Sales</div>
+                <div class="card-value" id="salesCount">Loading...</div>
+                <div class="card-footer">
+                    <a href="sale.html" class="card-link">
+                        View Sales
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="activity-section">
+            <div class="activity-header">
+                <h2 class="activity-title">Recent Activity</h2>
+            </div>
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th>Lead Name</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="recentActivityTable">
+                    <tr>
+                        <td colspan="5" style="text-align: center;">Loading recent activity...</td>
+                    </tr>
+                </tbody>
+            </table>
+    </div>
+    </main>
+
+    <script>
+        let lastCursorX = 0;
+        let lastCursorY = 0;
+        let lastActivityTime = Date.now();
+        let isUpdating = false;
+
+        // Throttle the mousemove event to prevent frequent updates
+        function throttle(func, limit) {
+            let inThrottle;
+            return function(...args) {
+                if (!inThrottle) {
+                    func.apply(this, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            }
+        }
+
+        // Throttled mouse move handler - only for activity tracking
+        const handleMouseMove = throttle(function(e) {
+            const currentTime = Date.now();
+            const timeSinceLastActivity = currentTime - lastActivityTime;
+            const cursorMoved = Math.abs(e.clientX - lastCursorX) > 50 || Math.abs(e.clientY - lastCursorY) > 50;
+
+            if (cursorMoved && timeSinceLastActivity >= 300000 && !isUpdating) { // Check every 5 minutes
+                lastCursorX = e.clientX;
+                lastCursorY = e.clientY;
+                lastActivityTime = currentTime;
+                updateActivity(e.clientX, e.clientY);
+            }
+        }, 5000);
+
+        document.addEventListener('mousemove', handleMouseMove);
+
+        // Activity update function - only sends activity data to server
+        async function updateActivity(x, y) {
+            if (isUpdating) return;
+            isUpdating = true;
+            
+            const token = localStorage.getItem('jwt_token');
+            try {
+                await fetch('http://127.0.0.1:5000/update_activity', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        cursor_x: x, 
+                        cursor_y: y,
+                        last_activity: new Date().toISOString()
+                    })
+                });
+            } catch (error) {
+                console.error('Error updating activity:', error);
+            } finally {
+                isUpdating = false;
+            }
+        }
+
+        // Authentication helper function
+        async function fetchWithAuth(url, options = {}) {
+            const token = localStorage.getItem('jwt_token');
+            const defaultOptions = {
+                ...options,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    ...(options.headers || {})
+                }
+            };
+
+            try {
+                const response = await fetch(url, defaultOptions);
+                if (!response.ok) {
+                if (response.status === 401 || response.status === 422) {
+                    localStorage.clear();
+                    window.location.href = '../index.html';
+                        return null;
+                    }
+                    console.error(`API Error: ${response.status} - ${response.statusText}`);
+                    return null;
+                }
+                return response;
+            } catch (error) {
+                console.error('API request failed:', error);
+                return null;
+            }
+        }
+
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('jwt_token');
+            const userRole = localStorage.getItem('user_role');
+            
+            if (!token || userRole !== 'staff') {
+                alert('Please log in with staff credentials');
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // Initial load
+            loadDashboardData();
+
+            // Set up intervals with cleanup
+            let dashboardInterval = setInterval(loadDashboardData, 30000);
+
+            // Cleanup intervals when page is hidden/closed
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    clearInterval(dashboardInterval);
+                } else {
+                    // Reload data and restart intervals when page becomes visible
+                    loadDashboardData();
+                    dashboardInterval = setInterval(loadDashboardData, 30000);
+                }
+            });
+        });
+
+        // Separate dashboard update function
+        async function loadDashboardData() {
+            try {
+                // Load profile data only if not already loaded
+                if (document.getElementById('profileName').textContent === 'Loading...') {
+                    const profileResponse = await fetchWithAuth('http://127.0.0.1:5000/profile');
+                    if (profileResponse) {
+                        const profileData = await profileResponse.json();
+                        const name = profileData.name || profileData.email;
+                        document.getElementById('profileName').textContent = name;
+                        document.getElementById('profileNameShort').textContent = name;
+                        document.getElementById('profileAvatar').textContent = name.charAt(0).toUpperCase();
+                    }
+                }
+
+                // Load data in parallel using Promise.all
+                const [leadsResponse, followupsResponse, salesResponse] = await Promise.all([
+                    fetchWithAuth('http://127.0.0.1:5000/leads?type=new'),
+                    fetchWithAuth('http://127.0.0.1:5000/followup'),
+                    fetchWithAuth('http://127.0.0.1:5000/sale')
+                ]);
+
+                // Update leads count
+                if (leadsResponse) {
+                    const leadsData = await leadsResponse.json();
+                    const newCount = leadsData.length.toString();
+                    const currentCount = document.getElementById('newLeadsCount').textContent;
+                    if (currentCount !== newCount && currentCount !== 'Loading...') {
+                        document.getElementById('newLeadsCount').textContent = newCount;
+                    }
+                }
+
+                // Update followups count
+                if (followupsResponse) {
+                    const followupsData = await followupsResponse.json();
+                    const today = new Date().toISOString().split('T')[0];
+                    const todayFollowups = followupsData.filter(f => f.date.startsWith(today));
+                    const newCount = todayFollowups.length.toString();
+                    const currentCount = document.getElementById('followupCount').textContent;
+                    if (currentCount !== newCount && currentCount !== 'Loading...') {
+                        document.getElementById('followupCount').textContent = newCount;
+                    }
+                }
+
+                // Update sales count
+                if (salesResponse) {
+                    const salesData = await salesResponse.json();
+                    const newCount = salesData.length.toString();
+                    const currentCount = document.getElementById('salesCount').textContent;
+                    if (currentCount !== newCount && currentCount !== 'Loading...') {
+                        document.getElementById('salesCount').textContent = newCount;
+                    }
+                }
+
+                // Load recent activity
+                try {
+                    const [leads, followups, sales] = await Promise.all([
+                        fetchWithAuth('http://127.0.0.1:5000/leads'),
+                        fetchWithAuth('http://127.0.0.1:5000/followup'),
+                        fetchWithAuth('http://127.0.0.1:5000/sale')
+                    ]);
+
+                    const activities = [];
+
+                    if (leads) {
+                        const leadsData = await leads.json();
+                        activities.push(...leadsData.map(lead => ({
+                            lead_name: lead.name,
+                            type: 'Lead',
+                            status: lead.status || 'Pending',
+                            date: lead.created_at,
+                            url: 'New_Leads.html'
+                        })));
+                    }
+
+                    if (followups) {
+                        const followupsData = await followups.json();
+                        activities.push(...followupsData.map(followup => ({
+                            lead_name: followup.lead_name,
+                            type: 'Follow-up',
+                            status: followup.status || 'Pending',
+                            date: followup.date,
+                            url: 'followup.html'
+                        })));
+                    }
+
+                    if (sales) {
+                        const salesData = await sales.json();
+                        activities.push(...salesData.map(sale => ({
+                            lead_name: sale.lead_name,
+                            type: 'Sale',
+                            status: 'Completed',
+                            date: sale.date,
+                            url: 'sale.html'
+                        })));
+                    }
+
+                    // Sort activities by date (most recent first) and take the first 5
+                    const recentActivities = activities
+                        .sort((a, b) => new Date(b.date) - new Date(a.date))
+                        .slice(0, 5);
+
+                    const activityTable = document.getElementById('recentActivityTable');
+                    
+                    if (recentActivities.length === 0 && activityTable.innerHTML.includes('Loading')) {
+                        activityTable.innerHTML = '<tr><td colspan="5" style="text-align: center;">No recent activity</td></tr>';
+                        return;
+                    }
+
+                    const newActivityHTML = recentActivities.map(activity => `
+                        <tr>
+                            <td>${activity.lead_name}</td>
+                            <td>${activity.type}</td>
+                            <td><span class="status-badge ${activity.status === 'Completed' ? 'status-success' : 'status-pending'}">${activity.status}</span></td>
+                            <td>${new Date(activity.date).toLocaleDateString()}</td>
+                            <td>
+                                <a href="${activity.url}" class="card-link">
+                                    View Details
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+                                    </svg>
+                                </a>
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    // Only update if content has changed
+                    if (activityTable.innerHTML !== newActivityHTML) {
+                        activityTable.innerHTML = newActivityHTML;
+                    }
+                } catch (error) {
+                    console.error('Error loading activities:', error);
+                    const activityTable = document.getElementById('recentActivityTable');
+                    if (activityTable.innerHTML.includes('Loading')) {
+                        activityTable.innerHTML = '<tr><td colspan="5" style="text-align: center;">Error loading recent activity</td></tr>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '../index.html';
+        }
+    </script>
+</body>
+</html>
