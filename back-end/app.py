@@ -14,9 +14,16 @@ from facebook_business.api import FacebookAdsApi
 from facebook_business.adobjects.leadgenform import LeadgenForm
 from facebook_business.adobjects.page import Page
 from werkzeug.utils import secure_filename
+from flask_mail import Mail, Message
+import random
+import string
+from sqlalchemy import func
 
 # Load environment variables
 load_dotenv()
+
+# Initialize Flask-Mail
+mail = Mail()
 
 # Factory Function
 def create_app():
@@ -30,6 +37,17 @@ def create_app():
     app.config['JWT_TOKEN_LOCATION'] = ['headers']
     app.config['JWT_HEADER_NAME'] = 'Authorization'
     app.config['JWT_HEADER_TYPE'] = 'Bearer'
+
+    # Mail Configuration
+    app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+    app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+    app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
+
+    # Initialize Mail
+    mail.init_app(app)
 
     # Configure upload folder
     UPLOAD_FOLDER = 'uploads'
@@ -47,39 +65,14 @@ def create_app():
     jwt.init_app(app)
     migrate.init_app(app, db)
     
-    # Configure CORS
-    CORS(app, resources={
-        r"/*": {
-            "origins": [
-                "http://localhost:5000",
-                "http://127.0.0.1:5000",
-                "http://localhost:5500",
-                "http://127.0.0.1:5500",
-                "http://localhost",
-                "http://127.0.0.1"
-            ],
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization", "Accept"],
-            "expose_headers": ["Content-Type", "Authorization"],
-            "supports_credentials": True,
-            "allow_credentials": True
-        },
-        r"/reports": {
-            "origins": [
-                "http://localhost:5000",
-                "http://127.0.0.1:5000",
-                "http://localhost:5500",
-                "http://127.0.0.1:5500",
-                "http://localhost",
-                "http://127.0.0.1"
-            ],
-            "methods": ["GET", "POST", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization", "Accept"],
-            "expose_headers": ["Content-Type", "Authorization"],
-            "supports_credentials": True,
-            "allow_credentials": True
-        }
-    })
+    # Configure CORS - simplified for development
+    CORS(app, 
+         resources={r"/*": {"origins": ["http://127.0.0.1:5500", "http://localhost:5500", "http://127.0.0.1:5000", "http://localhost:5000"]}},
+         supports_credentials=True,
+         allow_headers=["Content-Type", "Authorization", "Accept", "Origin"],
+         expose_headers=["Content-Type", "Authorization"],
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         max_age=3600)
     
     limiter.init_app(app)
 
@@ -103,11 +96,8 @@ def create_app():
         # Import all models
         from models import User, Followup, AccountOpen, Sale, Lead
         
-        # Drop all tables first
-        db.drop_all()
-        
-        # Create tables with the correct schema
-        logger.info("Creating database tables...")
+        # Create tables only if they don't exist
+        logger.info("Creating database tables if they don't exist...")
         db.create_all()
         
         # Create initial admin user only if no users exist
@@ -160,31 +150,52 @@ def create_app():
             logger.error(f"Error: {e}")
             return jsonify({'message': 'An error occurred'}), 500
 
-    @app.route('/login', methods=['POST'])
+    @app.route('/login', methods=['POST', 'OPTIONS'])
     def login():
+        if request.method == 'OPTIONS':
+            response = jsonify({'message': 'OK'})
+            response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin', '*'))
+            response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+            response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+            response.headers.add('Access-Control-Allow-Credentials', 'true')
+            return response
+
         try:
             data = request.get_json()
-            user = User.query.filter_by(email=data['email']).first()
-            if user and check_password_hash(user.password, data['password']):
-                # Update last active time
-                user.last_active = datetime.datetime.utcnow()
-                db.session.commit()
-                
-                # Create access token with user object
-                access_token = create_access_token(identity=user)
-                
-                return jsonify({
-                    'access_token': access_token,
-                    'role': user.role,
-                    'email': user.email,
-                    'name': user.name,
-                    'id': user.id
-                }), 200
+            if not data or 'email' not in data or 'password' not in data:
+                return jsonify({'message': 'Missing email or password'}), 400
 
-            return jsonify({'message': 'Invalid credentials'}), 401
+            user = User.query.filter_by(email=data['email']).first()
+            if not user:
+                return jsonify({'message': 'Invalid email or password'}), 401
+
+            if not check_password_hash(user.password, data['password']):
+                return jsonify({'message': 'Invalid email or password'}), 401
+
+            # Update last active time
+            user.last_active = datetime.datetime.utcnow()
+            db.session.commit()
+            
+            # Create access token with user object
+            access_token = create_access_token(identity=user)
+            
+            response = jsonify({
+                'access_token': access_token,
+                'role': user.role,
+                'email': user.email,
+                'name': user.name,
+                'id': user.id
+            })
+            
+            # Add CORS headers
+            response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin', '*'))
+            response.headers.add('Access-Control-Allow-Credentials', 'true')
+            
+            return response, 200
+
         except Exception as e:
-            logger.error(f"Error: {e}")
-            return jsonify({'message': 'An error occurred'}), 500
+            logger.error(f"Login error: {str(e)}")
+            return jsonify({'message': 'An error occurred during login'}), 500
 
     @app.route('/logout', methods=['POST'])
     @jwt_required()
@@ -581,6 +592,12 @@ def create_app():
                         'required_columns': required_columns
                     }), 400
                 
+                # Get all active staff members for assignment
+                staff_members = User.query.filter_by(role='staff', is_active=True).all()
+                if not staff_members:
+                    logger.error('No active staff members found for lead assignment')
+                    return jsonify({'error': 'No active staff members found'}), 400
+                
                 # Process leads
                 count = 0
                 assigned_count = 0
@@ -593,15 +610,25 @@ def create_app():
                             phone=str(row['phone']).strip(),
                             source='csv_import',
                             status='new',
-                            city=str(row['city']).strip() if 'city' in row else None,
-                            assigned_staff_id=current_user.id if current_user.role == 'staff' else None
+                            city=str(row['city']).strip() if 'city' in row else None
                         )
                         
-                        if current_user.role == 'staff':
-                            logger.info(f"Assigning lead {lead.name} to staff member {current_user.id}")
+                        # Assign to staff member with least leads
+                        if staff_members:
+                            # Get staff member with least leads
+                            staff_with_counts = []
+                            for staff in staff_members:
+                                lead_count = Lead.query.filter_by(assigned_staff_id=staff.id).count()
+                                staff_with_counts.append((staff, lead_count))
+                            
+                            # Sort by lead count and get the staff member with least leads
+                            staff_with_counts.sort(key=lambda x: x[1])
+                            assigned_staff = staff_with_counts[0][0]
+                            
+                            # Assign the lead
+                            lead.assigned_staff_id = assigned_staff.id
                             assigned_count += 1
-                        else:
-                            logger.info(f"User is admin, lead {lead.name} will remain unassigned")
+                            logger.info(f"Assigned lead {lead.name} to staff member {assigned_staff.name}")
                         
                         db.session.add(lead)
                         count += 1
@@ -618,17 +645,6 @@ def create_app():
                 # Final commit for remaining leads
                 db.session.commit()
                 logger.info(f'Successfully imported {count} leads (Total assigned: {assigned_count})')
-                
-                # Verify the leads were saved and assigned correctly
-                if current_user.role == 'staff':
-                    saved_leads = Lead.query.filter_by(
-                        source='csv_import',
-                        assigned_staff_id=current_user.id
-                    ).order_by(Lead.created_at.desc()).limit(5).all()
-                    
-                    logger.info(f'Verification: Found {len(saved_leads)} leads assigned to staff ID {current_user.id}')
-                    for lead in saved_leads:
-                        logger.info(f'Verified lead: {lead.name}, assigned_staff_id: {lead.assigned_staff_id}')
                 
                 # Clean up
                 os.remove(filepath)
@@ -722,9 +738,10 @@ def create_app():
             try:
                 # Initialize the Facebook Ads API
                 FacebookAdsApi.init(app_id, app_secret, access_token)
-                
+            
                 # Test the connection with minimal permissions first
                 try:
+                    # Verify page access directly
                     page = Page(page_id)
                     page_data = page.api_get(fields=['name', 'id'])
                     
@@ -733,7 +750,6 @@ def create_app():
                         'page_name': page_data.get('name'),
                         'page_id': page_data.get('id')
                     }), 200
-                    
                 except Exception as page_error:
                     error_message = str(page_error)
                     if 'pages_read_engagement' in error_message or 'Page Public Content Access' in error_message:
@@ -741,29 +757,45 @@ def create_app():
                             'pages_read_engagement',
                             'pages_manage_metadata',
                             'pages_show_list',
-                            'leads_retrieval'
+                            'leads_retrieval',
+                            'ads_management',
+                            'ads_read',
+                            'business_management'
                         ]
                         return jsonify({
                             'error': 'Missing Facebook Page permissions',
                             'required_permissions': required_permissions,
                             'setup_instructions': '''
                             To fix this:
-                            1. Go to developers.facebook.com
+                            1. Go to https://developers.facebook.com/apps/
                             2. Select your app
-                            3. Go to App Settings > Advanced
-                            4. Add the following permissions: pages_read_engagement, pages_manage_metadata, pages_show_list, leads_retrieval
-                            5. Submit for Facebook review if required
-                            6. Once approved, generate a new access token with these permissions
+                            3. Go to App Dashboard > Settings > Basic
+                            4. Add these permissions to your app:
+                               - pages_read_engagement
+                               - pages_manage_metadata
+                               - pages_show_list
+                               - leads_retrieval
+                               - ads_management
+                               - ads_read
+                               - business_management
+                            5. Go to App Dashboard > Facebook Login > Settings
+                            6. Add these permissions to the "User Data Deletion" section
+                            7. Save changes
+                            8. Generate a new access token with these permissions
+                            9. Update your .env file with the new token
                             '''
                         }), 403
                     else:
-                        raise page_error
-                
-            except Exception as api_error:
-                logger.error(f"Meta API connection error: {str(api_error)}")
+                        logger.error(f"Meta API connection error: {error_message}")
+                        return jsonify({
+                            'error': 'Failed to connect to Meta API',
+                            'details': error_message
+                        }), 500
+            except Exception as e:
+                logger.error(f"Meta API initialization error: {str(e)}")
                 return jsonify({
-                    'error': 'Failed to connect to Meta API',
-                    'details': str(api_error)
+                    'error': 'Failed to initialize Meta API',
+                    'details': str(e)
                 }), 500
                 
         except Exception as e:
@@ -852,7 +884,8 @@ def create_app():
                         'source': lead.source,
                         'status': lead.status,
                         'created_at': lead.created_at.isoformat() if lead.created_at else None,
-                        'assigned_staff_id': lead.assigned_staff_id
+                        'assigned_staff_id': lead.assigned_staff_id,
+                        'assigned_staff_name': lead.assigned_staff.name if lead.assigned_staff else None
                     }
                     lead_list.append(lead_data)
                 except Exception as e:
@@ -866,7 +899,7 @@ def create_app():
                 sample_size = min(3, len(lead_list))
                 logger.info(f"Sample of first {sample_size} leads being returned:")
                 for lead in lead_list[:sample_size]:
-                    logger.info(f"Lead ID: {lead['id']}, Name: {lead['name']}, Assigned to: {lead['assigned_staff_id']}")
+                    logger.info(f"Lead ID: {lead['id']}, Name: {lead['name']}, Assigned to: {lead['assigned_staff_name']}")
             
             return jsonify(lead_list), 200
             
@@ -1474,6 +1507,218 @@ def create_app():
         except Exception as e:
             logger.error(f"Error in handle_meta_settings: {str(e)}")
             return jsonify({'error': str(e)}), 500
+
+    @app.route('/settings/whatsapp', methods=['GET', 'POST', 'OPTIONS'])
+    @jwt_required()
+    def handle_whatsapp_settings():
+        if request.method == 'OPTIONS':
+            response = jsonify({'message': 'OK'})
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+            response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+            response.headers.add('Access-Control-Allow-Credentials', 'true')
+            return response
+
+        try:
+            current_user = get_current_user()
+            if not current_user or current_user.role != 'admin':
+                return jsonify({'error': 'Unauthorized'}), 403
+
+            if request.method == 'GET':
+                response = jsonify({
+                    'number': os.getenv('WHATSAPP_NUMBER', ''),
+                    'message': os.getenv('WHATSAPP_MESSAGE', 'Hello {name}, thank you for your interest in our services.')
+                })
+                response.headers.add('Access-Control-Allow-Origin', '*')
+                response.headers.add('Access-Control-Allow-Credentials', 'true')
+                return response, 200
+
+            else:  # POST
+                data = request.get_json()
+                
+                if 'number' in data:
+                    os.environ['WHATSAPP_NUMBER'] = data['number']
+                if 'message' in data:
+                    os.environ['WHATSAPP_MESSAGE'] = data['message']
+
+                response = jsonify({'message': 'WhatsApp settings saved successfully'})
+                response.headers.add('Access-Control-Allow-Origin', '*')
+                response.headers.add('Access-Control-Allow-Credentials', 'true')
+                return response, 200
+
+        except Exception as e:
+            logger.error(f"Error in handle_whatsapp_settings: {str(e)}")
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/inactive_staff_alerts', methods=['GET'])
+    @jwt_required()
+    def get_inactive_staff_alerts():
+        try:
+            current_user = get_current_user()
+            if not current_user or current_user.role != 'admin':
+                return jsonify({'error': 'Unauthorized'}), 403
+
+            now = datetime.datetime.utcnow()
+            activity_threshold = now - datetime.timedelta(minutes=5)
+            cursor_threshold = now - datetime.timedelta(minutes=2)
+            
+            # Get inactive staff members
+            inactive_staff = User.query.filter(
+                User.role == 'staff',
+                User.last_active.isnot(None),
+                User.last_active < activity_threshold,
+                (User.last_cursor_move.is_(None) | (User.last_cursor_move < cursor_threshold))
+            ).all()
+
+            alerts = []
+            for staff in inactive_staff:
+                last_cursor_move = staff.last_cursor_move.strftime('%Y-%m-%d %H:%M:%S') if staff.last_cursor_move else 'Never'
+                last_active = staff.last_active.strftime('%Y-%m-%d %H:%M:%S') if staff.last_active else 'Never'
+                
+                alerts.append({
+                    'staff_id': staff.id,
+                    'staff_name': staff.name,
+                    'staff_email': staff.email,
+                    'last_cursor_move': last_cursor_move,
+                    'last_active': last_active,
+                    'inactive_duration': int((now - staff.last_active).total_seconds() / 60) if staff.last_active else 0
+                })
+
+            return jsonify(alerts), 200
+
+        except Exception as e:
+            logger.error(f"Error in get_inactive_staff_alerts: {str(e)}")
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/staff/monitor', methods=['GET'])
+    @jwt_required()
+    def monitor_staff():
+        try:
+            # Get current user and verify admin status
+            current_user_id = get_jwt_identity()
+            current_user = User.query.get(current_user_id)
+            
+            if not current_user or not current_user.is_admin:
+                return jsonify({'error': 'Unauthorized access'}), 403
+
+            # Get all staff members
+            staff_members = User.query.filter_by(role='staff').all()
+            
+            staff_data = []
+            for staff in staff_members:
+                # Get active leads count
+                active_leads = Lead.query.filter_by(
+                    assigned_staff_id=staff.id,
+                    status='active'
+                ).count()
+                
+                # Calculate conversion rate
+                total_leads = Lead.query.filter_by(assigned_staff_id=staff.id).count()
+                converted_leads = Lead.query.filter_by(
+                    assigned_staff_id=staff.id,
+                    status='converted'
+                ).count()
+                conversion_rate = (converted_leads / total_leads * 100) if total_leads > 0 else 0
+                
+                # Get today's calls
+                today = datetime.now().date()
+                today_calls = Followup.query.filter(
+                    Followup.staff_id == staff.id,
+                    func.date(Followup.timestamp) == today
+                ).count()
+                
+                # Calculate average response time (in minutes)
+                followups = Followup.query.filter_by(staff_id=staff.id).all()
+                response_times = []
+                for followup in followups:
+                    if followup.response_time:
+                        response_times.append(followup.response_time)
+                avg_response_time = sum(response_times) / len(response_times) if response_times else 0
+                
+                # Check if staff is active (active within last 5 minutes)
+                five_minutes_ago = datetime.now() - datetime.timedelta(minutes=5)
+                is_active = staff.last_active and staff.last_active > five_minutes_ago
+                
+                staff_data.append({
+                    'id': staff.id,
+                    'name': staff.name,
+                    'email': staff.email,
+                    'activeLeads': active_leads,
+                    'conversionRate': round(conversion_rate, 1),
+                    'avgResponseTime': round(avg_response_time, 1),
+                    'todayCalls': today_calls,
+                    'isActive': is_active,
+                    'lastActive': staff.last_active.strftime('%Y-%m-%d %H:%M:%S') if staff.last_active else None
+                })
+
+            # Get performance data for chart
+            performance_data = {
+                'labels': [],
+                'data': []
+            }
+            
+            # Get last 7 days performance
+            for i in range(7):
+                date = datetime.now().date() - datetime.timedelta(days=i)
+                daily_leads = Lead.query.filter(func.date(Lead.created_at) == date).count()
+                daily_conversions = Lead.query.filter(
+                    func.date(Lead.created_at) == date,
+                    Lead.status == 'converted'
+                ).count()
+                daily_rate = (daily_conversions / daily_leads * 100) if daily_leads > 0 else 0
+                
+                performance_data['labels'].insert(0, date.strftime('%Y-%m-%d'))
+                performance_data['data'].insert(0, round(daily_rate, 1))
+
+            return jsonify({
+                'staff': staff_data,
+                'performance': performance_data
+            })
+
+        except Exception as e:
+            app.logger.error(f"Error in staff monitoring: {str(e)}")
+            return jsonify({'error': 'Internal server error'}), 500
+
+    @app.route('/staff/<int:staff_id>/reset-password', methods=['POST'])
+    @jwt_required()
+    def reset_staff_password(staff_id):
+        try:
+            # Get current user and verify admin status
+            current_user_id = get_jwt_identity()
+            current_user = User.query.get(current_user_id)
+            
+            if not current_user or not current_user.is_admin:
+                return jsonify({'error': 'Unauthorized access'}), 403
+
+            # Get staff member
+            staff = User.query.get(staff_id)
+            if not staff:
+                return jsonify({'error': 'Staff member not found'}), 404
+
+            # Generate new random password
+            new_password = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
+            staff.password = generate_password_hash(new_password)
+            
+            # Save to database
+            db.session.commit()
+
+            # Send email with new password
+            msg = Message(
+                'Password Reset',
+                sender='admin@moneykrisha.com',
+                recipients=[staff.email]
+            )
+            msg.body = f'''Your password has been reset by the administrator.
+Your new password is: {new_password}
+Please change your password after logging in.'''
+            
+            mail.send(msg)
+
+            return jsonify({'message': 'Password reset successful'}), 200
+
+        except Exception as e:
+            app.logger.error(f"Error in password reset: {str(e)}")
+            return jsonify({'error': 'Failed to reset password'}), 500
 
     # Update the inactivity checker to consider cursor movement
     def check_inactivity():

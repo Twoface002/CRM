@@ -353,12 +353,12 @@
             <table id="followupTable">
                 <thead>
                     <tr>
-                        <th>Lead ID</th>
+                        <th>#</th>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phone</th>
-                        <th>Status</th>
                         <th>Next Followup Date</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -418,28 +418,87 @@
 
         async function loadFollowupData() {
             try {
-                const response = await fetchWithAuth('http://127.0.0.1:5000/followup');
+                const response = await fetchWithAuth('http://127.0.0.1:5000/leads');
                 if (response && response.ok) {
                     const data = await response.json();
                     const tableBody = document.getElementById('followupTableBody');
                     tableBody.innerHTML = '';
 
-                    data.forEach(followup => {
+                    // Filter leads with followup status
+                    const followupLeads = data.filter(lead => lead.status === 'followup');
+
+                    for (const lead of followupLeads) {
+                        // Fetch followups for this lead
+                        const followupsResponse = await fetchWithAuth(`http://127.0.0.1:5000/leads/${lead.id}/followups`);
+                        let nextFollowupDate = '';
+                        if (followupsResponse && followupsResponse.ok) {
+                            const followups = await followupsResponse.json();
+                            if (followups.length > 0) {
+                                // Sort followups by date and get the latest one
+                                const sortedFollowups = followups.sort((a, b) => new Date(b.date) - new Date(a.date));
+                                nextFollowupDate = sortedFollowups[0].date.split('T')[0]; // Get date part only
+                            }
+                        }
+
                         const row = tableBody.insertRow();
-                        row.insertCell().textContent = followup.lead_id;
-                        row.insertCell().textContent = followup.name || 'N/A';
-                        row.insertCell().textContent = followup.email || 'N/A';
-                        row.insertCell().textContent = followup.phone || 'N/A';
-                        row.insertCell().textContent = followup.status || 'Pending';
-                        row.insertCell().textContent = followup.next_followup_date || 'Not scheduled';
+                        row.insertCell().textContent = followupLeads.indexOf(lead) + 1;
+                        row.insertCell().textContent = lead.full_name || lead.name || 'N/A';
+                        row.insertCell().textContent = lead.email || 'N/A';
+                        row.insertCell().textContent = lead.phone_number || lead.phone || 'N/A';
                         
+                        // Add Next Followup Date input
+                        const followupCell = row.insertCell();
+                        const followupInput = document.createElement('input');
+                        followupInput.type = 'date';
+                        followupInput.className = 'status-select';
+                        followupInput.value = nextFollowupDate;
+                        followupInput.addEventListener('change', async function() {
+                            const newDate = this.value;
+                            const statusCell = this.closest('tr').querySelector('td:nth-child(6)');
+                            
+                            try {
+                                const response = await fetch(`http://127.0.0.1:5000/leads/${lead.id}/followups`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+                                    },
+                                    body: JSON.stringify({
+                                        notes: `Scheduled followup for ${newDate}`,
+                                        status: 'followup'
+                                    })
+                                });
+
+                                if (response.ok) {
+                                    const result = await response.json();
+                                    statusCell.textContent = `Next followup: ${newDate}`;
+                                    alert('Followup date updated successfully');
+                                    loadFollowupData(); // Refresh the table to show updated data
+                                } else {
+                                    const error = await response.json();
+                                    alert('Failed to update followup date: ' + error.error);
+                                    this.value = statusCell.textContent.split(': ')[1]; // Revert to previous date
+                                }
+                            } catch (error) {
+                                console.error('Error updating followup date:', error);
+                                alert('Failed to update followup date. Please try again.');
+                                this.value = statusCell.textContent.split(': ')[1]; // Revert to previous date
+                            }
+                        });
+                        followupCell.appendChild(followupInput);
+
+                        // Add Status cell with current followup date
+                        const statusCell = row.insertCell();
+                        statusCell.textContent = nextFollowupDate ? `Next followup: ${nextFollowupDate}` : 'No followup date set';
+                        
+                        // Add Actions cell
                         const actionsCell = row.insertCell();
                         const updateButton = document.createElement('button');
                         updateButton.className = 'btn btn-primary';
                         updateButton.textContent = 'Update';
-                        updateButton.onclick = () => updateFollowup(followup.id);
+                        updateButton.onclick = () => updateFollowup(lead.id);
                         actionsCell.appendChild(updateButton);
-                    });
+                    }
                 }
             } catch (error) {
                 console.error('Error loading followup data:', error);

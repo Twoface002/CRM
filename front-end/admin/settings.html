@@ -476,6 +476,23 @@
                     Save Meta Configuration
                 </button>
             </div>
+
+            <!-- WhatsApp Integration -->
+            <div class="settings-card">
+                <h3>WhatsApp Integration</h3>
+                <div class="form-group">
+                    <label for="whatsappNumber">WhatsApp Number</label>
+                    <input type="text" id="whatsappNumber" class="form-control" placeholder="Enter WhatsApp number with country code (e.g., 919876543210)">
+                </div>
+                <div class="form-group">
+                    <label for="whatsappMessage">Default Message Template</label>
+                    <textarea id="whatsappMessage" class="form-control" rows="4" placeholder="Enter default message template. Use {name} for lead name, {phone} for lead phone number."></textarea>
+                </div>
+                <button class="button primary" id="saveWhatsAppConfigBtn">
+                    <i class="fas fa-save"></i>
+                    Save WhatsApp Configuration
+                </button>
+            </div>
         </div>
 
         <!-- Staff List -->
@@ -495,6 +512,7 @@
             loadStaffList();
             loadSettings();
             loadMetaSettings();
+            loadWhatsAppSettings();
         });
 
         // Toggle dropdown menu
@@ -682,6 +700,30 @@
             }
         }
 
+        // Load WhatsApp settings
+        async function loadWhatsAppSettings() {
+            try {
+                const response = await fetch('http://localhost:5000/settings/whatsapp', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const settings = await response.json();
+                    document.getElementById('whatsappNumber').value = settings.number || '';
+                    document.getElementById('whatsappMessage').value = settings.message || '';
+                } else {
+                    console.error('Failed to load WhatsApp settings');
+                }
+            } catch (error) {
+                console.error('Error loading WhatsApp settings:', error);
+            }
+        }
+
         // Save system configuration
         document.getElementById('saveConfigBtn').addEventListener('click', async function() {
             const config = {
@@ -742,6 +784,36 @@
             } catch (error) {
                 console.error('Error saving Meta configuration:', error);
                 alert('Error saving Meta configuration');
+            }
+        });
+
+        // Save WhatsApp configuration
+        document.getElementById('saveWhatsAppConfigBtn').addEventListener('click', async function() {
+            const config = {
+                number: document.getElementById('whatsappNumber').value,
+                message: document.getElementById('whatsappMessage').value
+            };
+
+            try {
+                const response = await fetch('http://localhost:5000/settings/whatsapp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(config)
+                });
+
+                if (response.ok) {
+                    alert('WhatsApp configuration saved successfully');
+                } else {
+                    const data = await response.json();
+                    alert(data.message || 'Error saving WhatsApp configuration');
+                }
+            } catch (error) {
+                console.error('Error saving WhatsApp configuration:', error);
+                alert('Error saving WhatsApp configuration');
             }
         });
 

@@ -383,9 +383,67 @@
                 justify-content: center;
             }
         }
+
+        /* Add styles for the alerts container */
+        .alerts-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+            display: block;
+        }
+
+        .alert {
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            border-left: 4px solid #dc2626;
+            color: #991b1b;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .alert-icon {
+            color: #dc2626;
+            flex-shrink: 0;
+        }
+
+        .alert-content {
+            flex-grow: 1;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .alert-message {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
+    <!-- Add the alerts container after body tag -->
+    <div class="alerts-container" id="alertsContainer"></div>
+
     <!-- Sidebar -->
     <nav class="sidebar">
         <div class="sidebar-logo">
@@ -603,6 +661,10 @@
 
             loadProfileData();
             loadReports();
+
+            // Check for inactive staff more frequently (every 30 seconds) during testing
+            checkInactiveStaff();
+            setInterval(checkInactiveStaff, 30000);
         });
 
         async function loadProfileData() {
@@ -841,6 +903,101 @@
                 dropdown.classList.remove('show');
             }
         });
+
+        // Add the inactive staff alert functions with debug logging
+        async function checkInactiveStaff() {
+            console.log('Checking for inactive staff...');
+            try {
+                const response = await fetchWithAuth('http://localhost:5000/inactive_staff_alerts');
+                console.log('Inactive staff response:', response);
+                
+                if (!response || !response.ok) {
+                    console.error('Failed to fetch inactive staff alerts:', response?.status);
+                    // Show a test alert if we can't fetch from backend
+                    const alertsContainer = document.getElementById('alertsContainer');
+                    alertsContainer.style.display = 'block';
+                    alertsContainer.innerHTML = `
+                        <div class="alert">
+                            <div class="alert-icon">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                                </svg>
+                            </div>
+                            <div class="alert-content">
+                                <div class="alert-title">Connection Error</div>
+                                <div class="alert-message">
+                                    Unable to check for inactive staff members. Please verify your connection to the server.
+                                </div>
+                            </div>
+                        </div>`;
+                    return;
+                }
+
+                const alerts = await response.json();
+                console.log('Inactive staff alerts:', alerts);
+                
+                const alertsContainer = document.getElementById('alertsContainer');
+                
+                if (alerts && alerts.length > 0) {
+                    console.log('Displaying alerts:', alerts.length);
+                    alertsContainer.style.display = 'block';
+                    alertsContainer.innerHTML = alerts.map(alert => `
+                        <div class="alert">
+                            <div class="alert-icon">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                                </svg>
+                            </div>
+                            <div class="alert-content">
+                                <div class="alert-title">Inactive Staff Member</div>
+                                <div class="alert-message">
+                                    ${alert.staff_name} (${alert.staff_email}) has been inactive for ${alert.inactive_duration} minutes.<br>
+                                    Last active: ${alert.last_active}<br>
+                                    Last cursor movement: ${alert.last_cursor_move}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    console.log('No inactive staff found');
+                    // Show a "No inactive staff" message for testing
+                    alertsContainer.style.display = 'block';
+                    alertsContainer.innerHTML = `
+                        <div class="alert" style="background: #f0fdf4; border-color: #86efac; border-left-color: #22c55e; color: #166534;">
+                            <div class="alert-icon" style="color: #22c55e;">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                                </svg>
+                            </div>
+                            <div class="alert-content">
+                                <div class="alert-title">All Staff Active</div>
+                                <div class="alert-message">
+                                    All staff members are currently active.
+                                </div>
+                            </div>
+                        </div>`;
+                }
+            } catch (error) {
+                console.error('Error checking inactive staff:', error);
+                // Show error alert
+                const alertsContainer = document.getElementById('alertsContainer');
+                alertsContainer.style.display = 'block';
+                alertsContainer.innerHTML = `
+                    <div class="alert">
+                        <div class="alert-icon">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                            </svg>
+                        </div>
+                        <div class="alert-content">
+                            <div class="alert-title">Error Checking Staff Status</div>
+                            <div class="alert-message">
+                                ${error.message}
+                            </div>
+                        </div>
+                    </div>`;
+            }
+        }
     </script>
 </body>
 </html> 

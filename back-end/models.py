@@ -58,6 +58,7 @@ class Lead(db.Model):
     
     # Relationships
     followups = db.relationship('Followup', backref='lead', lazy=True)
+    assigned_staff = db.relationship('User', backref=db.backref('assigned_leads', overlaps="leads"), overlaps="leads")
     account_opens = db.relationship('AccountOpen', backref='lead', lazy=True)
     sales = db.relationship('Sale', backref='lead', lazy=True)
 

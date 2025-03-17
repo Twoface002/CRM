@@ -453,34 +453,36 @@
             }
         }
 
-        function loadSaleLeads() {
-            fetch('NewLeads.html')
-                .then(response => response.text())
-                .then(data => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(data, 'text/html');
-                    const leads = doc.querySelectorAll('.lead');
+        async function loadSaleLeads() {
+            try {
+                const response = await fetchWithAuth('http://127.0.0.1:5000/leads');
+                if (response && response.ok) {
+                    const data = await response.json();
                     const leadsContainer = document.getElementById('leadsContainer');
                     leadsContainer.innerHTML = '';
-                    leads.forEach(lead => {
+
+                    // Filter leads with sales status
+                    const salesLeads = data.filter(lead => lead.status === 'sales');
+
+                    salesLeads.forEach(lead => {
                         const leadElement = document.createElement('div');
                         leadElement.className = 'lead';
                         leadElement.innerHTML = `
                             <div class="lead-info">
-                                <div class="lead-name">${lead.querySelector('.lead-name')?.textContent || 'N/A'}</div>
-                                <div class="lead-details">${lead.querySelector('.lead-details')?.textContent || 'N/A'}</div>
+                                <div class="lead-name">${lead.full_name || lead.name || 'N/A'}</div>
+                                <div class="lead-details">${lead.email || 'N/A'} | ${lead.phone_number || lead.phone || 'N/A'}</div>
                             </div>
                             <div class="lead-actions">
-                                <button class="btn btn-primary" onclick="processSale(${lead.dataset.id})">Process Sale</button>
+                                <button class="btn btn-primary" onclick="processSale(${lead.id})">Process Sale</button>
                             </div>
                         `;
                         leadsContainer.appendChild(leadElement);
                     });
-                })
-                .catch(error => {
-                    console.error('Error loading sale leads:', error);
-                    document.getElementById('leadsContainer').textContent = 'Failed to load sale leads.';
-                });
+                }
+            } catch (error) {
+                console.error('Error loading sale leads:', error);
+                document.getElementById('leadsContainer').textContent = 'Failed to load sale leads.';
+            }
         }
 
         function processSale(leadId) {
